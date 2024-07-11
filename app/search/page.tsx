@@ -14,7 +14,6 @@ export default function EditToolsPage() {
   function testSearch(inputValue: string) {
     setSearchKeywords(inputValue)
     invoke("search_tools", { keywords: inputValue }).then(result => {
-      console.log("search result", searchKeywords, result)
       if (result && result instanceof Array) {
         let resultItemList = result.map((item: string) => {
           return JSON.parse(item) as ToolsItem
@@ -27,7 +26,6 @@ export default function EditToolsPage() {
   }
 
   function appendHistory(words:string) {
-    console.log("appendHistory", words)
     if (histories.includes(words)) {
       let index = histories.indexOf(words)
       histories.splice(index, 1)
@@ -91,7 +89,7 @@ export default function EditToolsPage() {
             (item: ToolsItem) => {
               return (
                 <ListboxItem endContent={<AiOutlineArrowRight className="text-default-400" />} textValue={item.title} className="px-3 py-2"
-                  key={item.id ?? 0} href={`/details?toolId=${item.id}`} onPress={() => { appendHistory(searchKeywords) }}>
+                  key={item.id ?? 0} href={`/details?toolId=${item.tool_id}`} onPress={() => { appendHistory(searchKeywords) }}>
                   <div className="flex gap-2 items-center">
                     <div className="flex flex-col text-left w-full truncate">
                       <span className="text-lg text-default-800 font-thin truncate">{item.title}</span>

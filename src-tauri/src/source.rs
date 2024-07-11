@@ -1,5 +1,6 @@
 use log::{info, kv::source};
 use serde::{Deserialize, Serialize};
+use serde_json::to_string;
 use tauri::AppHandle;
 use uuid::Uuid;
 
@@ -76,8 +77,9 @@ pub fn save_source(tools_source: &ToolsSource, handle: &AppHandle) -> Result<(),
     for ele in &tools_source.items {
         db.add_source_item(&tools_source, &ele, handle)?;
     }
+    let tools = db.get_source_items(tools_source.source_id.clone(), handle)?;
     let tools_index = TOOLS_INDEX.lock().map_err(|err|err.to_string())?;
-    tools_index.update_index(&tools_source.items);
+    tools_index.update_index(&tools)?;
     Ok(())
 }
 
@@ -114,7 +116,7 @@ pub fn query_items_by_type(tool_type: String, handle: &AppHandle) -> Result<Vec<
 pub fn save_local_tool_item(item: &ToolsSourceItem, handle: &AppHandle) -> Result<i32, String> {
     // 查询source表，是否有本地的source, url = localhost
     let db = DB.lock().map_err(|err|err.to_string())?;
-    let source = db.get_source_by_url("localhost".to_string(), handle)?;
+    let mut source = db.get_source_by_url("localhost".to_string(), handle)?;
     let source_id = Uuid::new_v4().to_string();
     if source.is_empty() {
         db.add_source(&ToolsSource {
@@ -129,15 +131,18 @@ pub fn save_local_tool_item(item: &ToolsSourceItem, handle: &AppHandle) -> Resul
             last_sync: "".to_string(),
             items: vec![],
         }, handle)?;
-    }
-
-    let source = db.get_source_by_url("localhost".to_string(), handle)?;
+        source = db.get_source_by_url("localhost".to_string(), handle)?;
+    } 
     // 如果没有，则插入一条数据
     db.add_source_item(&source[0], item, handle)?;
     
     // 插入tool—item 数据，结束
-    let result_list = db.get_source_item_by_url(item.target_url.clone(), source_id.clone(), &handle)?;
+    let result_list = db.get_source_item_by_url(item.target_url.clone(), source[0].source_id.clone(), &handle)?;
+    let result_str = serde_json::to_string(&result_list);
+    info!("search result: {:?}", result_str);
     if result_list.len() > 0  {
+        let tools_index = TOOLS_INDEX.lock().map_err(|err|err.to_string())?;
+        tools_index.update_index(&result_list)?;
         Ok(result_list[0].id)
     } else {
         Ok(0)

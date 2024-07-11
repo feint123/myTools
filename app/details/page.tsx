@@ -5,9 +5,8 @@ import ToolsDetail from "@/components/tools-detail";
 
 export default function DetailPage() {
  
-  // const params = useSearchParams()
-  // const toolId = params.get("toolId");
-  const toolId = "1"
+  const params = useSearchParams()
+  const toolId = params.get("toolId");
   return (
     <ToolsDetail toolsId={toolId??""}/>
   )

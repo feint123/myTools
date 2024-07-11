@@ -133,7 +133,7 @@ impl DbManager {
         item: &ToolsSourceItem,
         handle: &AppHandle,
     ) -> Result<(), String> {
-        self.init(&handle);
+        self.init(&handle)?;
         self.connection.execute(
             "INSERT OR REPLACE INTO tools_source_item (title, description, cover_image_url, preview_image_url, target_url, content, author, tool_type, categorys, tools_source_id, source_name) VALUES (?1, ?2,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             (&item.title, &item.description, &item.cover_image_url, &item.preview_image_url.join("&"), 

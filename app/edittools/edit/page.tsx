@@ -141,6 +141,7 @@ export default function EditToolsEditPage() {
       let id = await invoke("save_local_source_item", { sourceItem: toolsItem });
       setIsSubmitLoading(false)
       router.push(`/edittools?toolId=${id}`)
+      location.reload()
     } catch (error) {
       console.log(error)
     }

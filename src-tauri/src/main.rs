@@ -12,9 +12,8 @@ use std::{fs, sync::atomic::AtomicBool};
 use db::{SqlState, DB};
 use ::log::info;
 use native::{create_main_window, native_windows};
-use search::ToolsSearch;
 use source::{ToolsSource, ToolsSourceItem};
-use tauri::{App, AppHandle, LogicalSize, Manager, Theme, Window};
+use tauri::{App, AppHandle, LogicalSize, Manager};
 use uuid::Uuid;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command

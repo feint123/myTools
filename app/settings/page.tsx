@@ -1,5 +1,5 @@
 "use client";
-import { Button, Selection, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Snippet, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs, useDisclosure, Chip, Spinner } from "@nextui-org/react";
+import { Button, Selection, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Snippet, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs, useDisclosure, Chip, Spinner, ScrollShadow } from "@nextui-org/react";
 import { SlOptionsVertical, SlRefresh } from "react-icons/sl";
 import { AiOutlineCopy, AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import { CiCircleList, CiFileOn } from "react-icons/ci";
@@ -20,6 +20,7 @@ interface ToolsSource {
 
 export interface ToolsItem {
   id: number | undefined;
+  tool_id?: number | undefined;
   title: string | undefined;
   description: string | undefined;
   target_url: string | undefined;
@@ -109,31 +110,40 @@ export default function SettingsPage() {
               <>
                 <ModalHeader className="flex flex-col gap-1">工具列表</ModalHeader>
                 <ModalBody>
-                  <Table isHeaderSticky isStriped aria-label="tools source table" className="text-left max-h-[360px]"
-                    onSortChange={toolsList.sort} sortDescriptor={toolsList.sortDescriptor}>
-                    <TableHeader>
-                      <TableColumn allowsSorting>标题</TableColumn>
-                      <TableColumn >简介</TableColumn>
-                      <TableColumn>地址</TableColumn>
-                      <TableColumn>分类</TableColumn>
+                  <ScrollShadow hideScrollBar orientation="vertical" className="h-[360px]">
+                    <Table shadow="none" isHeaderSticky isStriped aria-label="tools source table" className="text-left"
+                      onSortChange={toolsList.sort} sortDescriptor={toolsList.sortDescriptor}>
+                      <TableHeader>
+                        <TableColumn allowsSorting>标题</TableColumn>
+                        <TableColumn >简介</TableColumn>
+                        <TableColumn>分类</TableColumn>
 
-                    </TableHeader>
-                    <TableBody emptyContent={"工具不存在"} items={toolsList.items}
-                      isLoading={isToolsLoading}
-                      loadingContent={<Spinner label="Loading..." />}>
-                      {
-                        (item: ToolsItem) => {
-                          return (<TableRow key={item.target_url}>
-                            <TableCell>{item.title}</TableCell>
-                            <TableCell><div className="truncate">{item.description}</div></TableCell>
-                            <TableCell>{item.target_url}</TableCell>
-                            <TableCell>{item.categorys?.map(cate => <Chip key={cate} size="sm" color="primary">{cate}</Chip>)}</TableCell>
-                          </TableRow>)
+                      </TableHeader>
+                      <TableBody emptyContent={"工具不存在"} items={toolsList.items}
+                        isLoading={isToolsLoading}
+                        loadingContent={<Spinner label="Loading..." />}>
+                        {
+                          (item: ToolsItem) => {
+                            return (<TableRow key={item.target_url}>
+                              <TableCell>{item.title}</TableCell>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <p className="truncate">{item.description}</p>
+                                  <p className="text-xs text-foreground-500">{item.target_url}</p>
+                                </div></TableCell>
+                              <TableCell>
+
+                                <div className="flex flex-row gap-1">
+                                  {item.categorys?.map(cate => <Chip key={cate} size="sm" color="primary">{cate}</Chip>)}
+                                </div>
+                              </TableCell>
+                            </TableRow>)
+                          }
                         }
-                      }
 
-                    </TableBody>
-                  </Table>
+                      </TableBody>
+                    </Table>
+                  </ScrollShadow>
                 </ModalBody>
                 <ModalFooter>
                   {/* <Button color="danger" variant="flat" size="sm" onPress={onClose}>
@@ -151,6 +161,7 @@ export default function SettingsPage() {
   function AddSourceModal() {
     const [selectType, setSelectType] = useState<string | number | null | undefined>("local")
     const [filePath, setFilePath] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     async function chooseSourceFile() {
       await open({
         directory: false,
@@ -169,6 +180,7 @@ export default function SettingsPage() {
       });
     }
     function appendSource(onClose: () => void) {
+      setIsLoading(true);
       invoke("append_source", { "sourceType": selectType, "path": filePath })
         .then(() => {
           fetchSource(setSourceList)
@@ -177,6 +189,7 @@ export default function SettingsPage() {
           console.log(e)
         })
         .finally(() => {
+          setIsLoading(false)
           onClose()
         });
     }
@@ -188,7 +201,7 @@ export default function SettingsPage() {
               <ModalHeader className="flex flex-col gap-1">添加工具源</ModalHeader>
               <ModalBody>
                 <Tabs selectedKey={selectType} onSelectionChange={setSelectType}>
-                  <Tab key="network" title="网络">
+                  <Tab isDisabled key="network" title="网络">
                     <div className="flex flex-col gap-4">
                       <Input labelPlacement="outside" startContent={
                         <div className="pointer-events-none flex items-center">
@@ -211,10 +224,7 @@ export default function SettingsPage() {
                 </Tabs>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="flat" size="sm" onPress={onClose}>
-                  关闭
-                </Button>
-                <Button color="primary" variant="flat" size="sm" onClick={() => { appendSource(onClose) }}
+                <Button isLoading={isLoading} color="primary" variant="flat" size="sm" onClick={() => { appendSource(onClose) }}
                   isDisabled={!(filePath && filePath.length > 0)}>
                   添加
                 </Button>
@@ -230,14 +240,17 @@ export default function SettingsPage() {
   function ToolSourcesSettings() {
     const [selectedSource, setSelectedSource] = useState<Selection>(new Set([]))
     function deleteSources() {
-      let selectId = []
+      let selectId: string[]  = []
       if (selectedSource == 'all') {
-        selectId = sourceList.map(item => item.source_id)
+        selectId = sourceList.map(item => item.source_id as string)
       } else {
         selectId = Array.from(selectedSource).map(item => item.toString())
       }
-      console.log(selectId)
-      invoke("delete_source", { "sourceIds": selectId })
+      deleteSourcesById(selectId)
+    }
+
+    function deleteSourcesById(sourceId: string[]) {
+      invoke("delete_source", { "sourceIds": sourceId })
         .then(() => {
           fetchSource(setSourceList)
         })
@@ -245,10 +258,11 @@ export default function SettingsPage() {
           console.log(e)
         })
     }
+
     const topContent = useMemo(() => {
       return (
         <div className="flex flex-row gap-2 justify-end">
-          <Button size="sm" variant="flat" startContent={<SlRefresh />}>更新</Button>
+          <Button size="sm" variant="flat" startContent={<SlRefresh />} isDisabled>更新</Button>
           <Button size="sm" color="danger" variant="flat" startContent={<AiOutlineDelete />} onClick={deleteSources}>删除</Button>
 
           <Button color="primary" size="sm" variant="flat" startContent={<AiOutlinePlus />} onPress={onOpen}>
@@ -265,11 +279,14 @@ export default function SettingsPage() {
       <div className="w-full flex flex-col gap-4">
         <AddSourceModal />
         <ToolsListModal />
-        <Table aria-label="tools source table" className="text-left"
+        <ScrollShadow hideScrollBar orientation="vertical" className="h-[480px]">
+
+        <Table shadow="none" aria-label="tools source table" className="text-left w-full"
           selectedKeys={selectedSource}
           onSelectionChange={setSelectedSource}
           selectionMode="multiple"
-          topContent={topContent}>
+          topContent={topContent}
+          >
           <TableHeader>
             <TableColumn>名称</TableColumn>
             <TableColumn>源地址</TableColumn>
@@ -286,17 +303,16 @@ export default function SettingsPage() {
                   <TableCell><Chip size="sm" radius="sm">{item.version}</Chip></TableCell>
                   <TableCell>{formatSyncTime(item.last_sync ?? "")}</TableCell>
                   <TableCell>  <div className="relative flex justify-end items-center gap-2">
-                    <Dropdown>
+                    <Dropdown >
                       <DropdownTrigger>
                         <Button isIconOnly size="sm" variant="light">
                           <SlOptionsVertical className="text-default-300" />
                         </Button>
                       </DropdownTrigger>
-                      <DropdownMenu>
-                        <DropdownItem startContent={<AiOutlineDelete />}>删除</DropdownItem>
-                        <DropdownItem startContent={<SlRefresh />}>更新</DropdownItem>
-                        <DropdownItem startContent={<AiOutlineCopy />}>拷贝地址</DropdownItem>
-                        <DropdownItem startContent={<CiCircleList />} onClick={() => { setCurrentSourceId(item.source_id); onToolsOpen() }}>工具列表</DropdownItem>
+                      <DropdownMenu disabledKeys={["update"]}>
+                        <DropdownItem key="delete" startContent={<AiOutlineDelete />} onClick={()=>{deleteSourcesById([item.source_id??""])}}>删除</DropdownItem>
+                        <DropdownItem key="update" startContent={<SlRefresh />}>更新</DropdownItem>
+                        <DropdownItem key="toolsList" startContent={<CiCircleList />} onClick={() => { setCurrentSourceId(item.source_id); onToolsOpen() }}>工具列表</DropdownItem>
                       </DropdownMenu>
                     </Dropdown>
                   </div></TableCell>
@@ -306,6 +322,7 @@ export default function SettingsPage() {
 
           </TableBody>
         </Table>
+        </ScrollShadow>
       </div>
     )
   }
