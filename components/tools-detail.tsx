@@ -1,5 +1,5 @@
 import { ToolsItem } from "@/app/settings/page"
-import { Avatar, Button, Divider, Image, Link } from "@nextui-org/react"
+import { Avatar, Button, Divider, Link } from "@nextui-org/react"
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data"
 import { invoke } from "@tauri-apps/api/core"
 import { useMemo } from "react"
@@ -9,6 +9,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { open } from "@tauri-apps/plugin-shell"
 import { AiOutlineEdit } from "react-icons/ai"
+import { Image } from "antd"
 
 export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
@@ -32,9 +33,12 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
   const swiperSlides = useMemo(() => tools.items[0]?.preview_image_url?.map((image, index) => (
     <SwiperSlide key={index} className="item-center justify-center align-center">
       <Image
-        removeWrapper
-        className="w-full h-full "
-        alt="NextUI hero Image with delay"
+        preview={{
+          maskClassName:"rounded-lg",
+          classNames:{mask:"backdrop-blur-md"},
+        }}
+        className="w-full h-full rounded-lg"
+        alt="工具预览"
         src={image}
       />
     </SwiperSlide>

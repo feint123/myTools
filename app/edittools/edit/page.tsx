@@ -161,7 +161,7 @@ export default function EditToolsEditPage() {
       if (previewFile && previewFile.originFileObj && !previewFile.url) {
         url = await getBase64(previewFile.originFileObj) as string;
       } else {
-        url = file.url??""
+        url = previewFile.url??""
       }
       previewUrls.push(url)
     }
