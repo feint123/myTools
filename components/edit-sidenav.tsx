@@ -60,7 +60,6 @@ export const EditSidenav = () => {
           } else {
             selectId = Array.from(selectedSource as Iterable<string>).map(item=>Number.parseInt(item))
           }
-          console.log(selectId)
           invoke("export_source", {toolsList:selectId, outPath:path})
           .then(async ()=>{
             await message(`导出成功, 文件路径【${path}/tools-export.json】`, { title: '工具源导出', kind: 'info' });

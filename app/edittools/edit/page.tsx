@@ -7,7 +7,6 @@ import { AiOutlineAppstore, AiOutlineAudio, AiOutlineBug, AiOutlineCloud, AiOutl
 import { ConfigProvider, theme, Upload, UploadProps } from "antd";
 
 import { RcFile, UploadFile } from "antd/es/upload";
-import ImgCrop from 'antd-img-crop';
 import { ToolsItem } from "@/app/settings/page";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrent } from "@tauri-apps/api/webviewWindow";
@@ -189,7 +188,6 @@ export default function EditToolsEditPage() {
       let id = await invoke("save_local_source_item", { sourceItem: toolsItem });
       setIsSubmitLoading(false)
       router.push(`/edittools?toolId=${id}`)
-      location.reload()
     } catch (error) {
       console.log(error)
     }
@@ -202,23 +200,24 @@ export default function EditToolsEditPage() {
         errorMessage="标题不能为空"
         isInvalid={title.trim().length == 0 && pressSubmit} value={title} onValueChange={setTitle} />
       <FileUploaderWrapper>
-        <p className="text-xs text-foreground-500 font-bold">封面</p>
+        <p className="text-xs text-default-600">封面</p>
         <ConfigProvider theme={{ algorithm: antTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
 
-          <ImgCrop modalClassName="backdrop-blur-md" aspect={3 / 2} modalOk="确定" zoomSlider modalCancel="取消">
+          {/* <ImgCrop modalClassName="backdrop-blur-md" aspect={3 / 2} modalOk="确定" zoomSlider modalCancel="取消"> */}
             <Upload
               action={getBase64}
               listType="picture-card"
               fileList={coverFileList}
               onChange={handleChange}
               accept="image/*"
-              className="mt-2"
+              className="my-2"
               showUploadList={{ "showPreviewIcon": false }}
             >
               {coverFileList.length >= 1 ? null : '+ 上传'}
             </Upload>
-          </ImgCrop>
+          {/* </ImgCrop> */}
         </ConfigProvider>
+        <p className="text-xs text-foreground-400 text-right">尺寸：600x400；格式：webp</p>
       </FileUploaderWrapper>
       <Input isRequired type="text" label="描述" placeholder="请输入描述,10~30个字左右"
         errorMessage="描述不能为空"
@@ -268,22 +267,23 @@ export default function EditToolsEditPage() {
         </Select>
       </div>
       <FileUploaderWrapper>
-        <p className="text-xs text-foreground-500 font-bold">预览图</p>
+        <p className="text-xs text-default-600">预览图</p>
         <ConfigProvider theme={{ algorithm: antTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm }}>
-          <ImgCrop modalClassName="backdrop-blur-md" aspect={3 / 2} modalOk="确定" zoomSlider modalCancel="取消">
+          {/* <ImgCrop modalClassName="backdrop-blur-md" fillColor="none" aspect={3 / 2} modalOk="确定" zoomSlider modalCancel="取消"> */}
             <Upload
               action={getBase64}
               listType="picture-card"
               fileList={previewFileList}
               onChange={handlePreviewChange}
               accept="image/*"
-              className="mt-2"
+              className="my-2"
               showUploadList={{ "showPreviewIcon": false }}
             >
               {coverFileList.length >= 16 ? null : '+ 上传'}
             </Upload>
-          </ImgCrop>
+          {/* </ImgCrop> */}
         </ConfigProvider>
+        <p className="text-xs text-foreground-400 text-right">推荐，尺寸：1200x800；格式：webp</p>
       </FileUploaderWrapper>
       <Textarea
         minRows={8}

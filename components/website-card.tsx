@@ -5,11 +5,13 @@ import React, { FC } from "react";
 import { Card, CardFooter, Image, Button, Link, CardHeader, CardBody } from "@nextui-org/react";
 import { ToolsItem } from "@/app/settings/page";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 
 export const WebsiteCard = ({ param }: { param: ToolsItem }) => {
+    const router = useRouter();
     return (
-        <Card key={param.id} isPressable as={Link} href={`/details?toolId=${param.id}`} className="w-[280px] h-[280px] col-span-1 hover:opacity-100">
+        <Card key={param.id} isPressable onClick={()=>{router.push(`/details?toolId=${param.id}`)}} className="w-[280px] h-[280px] col-span-1">
             <CardHeader className="pb-0 pt-2 px-4 flex-col items-start text-left">
                 <p className="text-tiny uppercase font-bold truncate w-full">{param.categorys?.join("、")}</p>
                 <small className="text-default-500 truncate w-full">{param.description}</small>

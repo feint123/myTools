@@ -24,7 +24,6 @@
     "dialog:allow-open",
     "window:allow-start-dragging",
     "webview:allow-internal-toggle-devtools",
-    "store:default",
     "log:default",
     "shell:default",
     "fs:allow-appdata-write",

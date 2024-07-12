@@ -16,6 +16,11 @@
 | --- | --- |
 | ![](./statics//screenshot-3.jpeg) | ![](./statics//screenshot-4.jpeg) |
 
+### 开始
+1. 下载[配置文件](./statics//tools-export.json)
+2. 点击窗口右上角的设置（⚙️）按钮，然后按照下图进行操作
+3. ![](./statics//import_tools_config.gif)
+
 ### 开发任务（未完成）
 1. 工具的快捷面板开发
 2. 优化搜索功能

@@ -9,6 +9,7 @@ import { ToolsItem } from "../settings/page";
 import { invoke } from "@tauri-apps/api/core";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { TabIcon } from "@/components/tab-icon";
 
 
 interface SoftwareItem {
@@ -54,24 +55,6 @@ export default function SoftwarePage() {
     ))
   }
 
-  function getCateIcon(category: string) {
-    switch (category) {
-      case "音频":
-        return <AiOutlineAudio />
-      case "视频":
-        return <AiOutlineVideoCamera />
-      case "文档":
-        return <AiOutlineFileWord />
-      case "编程":
-        return <AiOutlineCode />
-      case "AI":
-        return <AiOutlineRobot/>
-      case "聚合":
-        return <AiOutlineInbox />
-      case "图片":
-        return <AiOutlineFileImage />
-    }
-  }
   //get_source_items_by_type
 
   return (
@@ -80,7 +63,7 @@ export default function SoftwarePage() {
         {
         (item: SoftwareItem) =>  (
            <Tab key={item.category} title={<div className="flex items-center space-x-2">
-              {getCateIcon(item.category)}
+              <TabIcon category={item.category}/>
               <span>{item.category}</span>
             </div>}>
               <div className="w-full grid 2xl:grid-cols-4 xl:grid-cols-3 sm:grid-cols-1 md:grid-cols-2 gap-4">
