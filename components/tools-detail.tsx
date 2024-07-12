@@ -7,6 +7,7 @@ import { Navigation, Pagination } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 import 'swiper/css';
 import 'swiper/css/navigation';
+import { open } from "@tauri-apps/plugin-shell"
 
 export default function ToolsDetail({toolsId}:{toolsId: string}) {
  
