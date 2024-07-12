@@ -1,7 +1,7 @@
 use std::{fs, path::{Path, PathBuf}, sync::{Arc, Mutex}};
 use lazy_static::lazy_static;
 use log::info;
-use tantivy::{collector::TopDocs, directory::MmapDirectory, doc, index, query::{self, QueryParser, TermQuery}, schema::{self, FieldValue, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, INDEXED, STORED, STRING}, Document, Index, TantivyDocument, Term};
+use tantivy::{collector::TopDocs, directory::MmapDirectory, doc, index, query::{self, BooleanQuery, Occur, QueryClone, QueryParser, TermQuery}, schema::{self, FieldValue, IndexRecordOption, Schema, TextFieldIndexing, TextOptions, INDEXED, STORED, STRING}, Document, Index, IndexWriter, TantivyDocument, Term};
 use tauri::{AppHandle, Manager};
 
 use crate::source::ToolsSourceItem;
@@ -47,6 +47,7 @@ impl ToolsSearch {
 
         schema_builder.add_i64_field("tool_id", STORED|INDEXED);
         schema_builder.add_text_field("target_url", STORED|STRING);
+        schema_builder.add_text_field("source_id", STORED|STRING);
         schema_builder.add_text_field("title", text_options.clone());
         schema_builder.add_text_field("description", text_options.clone());
         schema_builder.add_text_field("content", text_options.clone());
@@ -92,23 +93,26 @@ impl ToolsSearch {
             let description = schema.get_field("description").map_err(|err| err.to_string())?;
             let content = schema.get_field("content").map_err(|err| err.to_string())?;
             let target_url = schema.get_field("target_url").map_err(|err| err.to_string())?;
+            let source_id = schema.get_field("source_id").map_err(|err| err.to_string())?;
             let mut index_writer = tools_index.writer(50_000_000).map_err(|err| err.to_string())?;
-
-
+            // 更新索引分为 删除和添加 两步
             for ele in tool_items {
                 let url_term = Term::from_field_text(target_url, &ele.target_url.as_str());
-                let tools_exists = self.extract_doc_by_url(&url_term)?;
-                if tools_exists.is_some() {
-                    index_writer.delete_term(url_term.clone());
-                }
-                let id_str = format!("{}",ele.id);
-                info!("index id {id_str}");
+                let source_id_term = Term::from_field_text(source_id, &ele.tools_source_id.as_str());
+                let url_query = TermQuery::new(url_term.clone(), IndexRecordOption::Basic);
+                let source_id_query = TermQuery::new(source_id_term.clone(), IndexRecordOption::Basic);
+                // let tools_exists = self.extract_doc_by_url(&url_term)?;
+                // if tools_exists.is_some() {
+                // }
+                let union_query = BooleanQuery::new(vec![(Occur::Must, url_query.box_clone()), (Occur::Must, source_id_query.box_clone())]);
+                let _ = index_writer.delete_query(union_query.box_clone()).map_err(|err| err.to_string())?;
                 index_writer.add_document(doc!(
-                    id => (ele.id as i64),
+                    id => ele.id as i64,
                     title => ele.title.as_str(),
                     description => ele.description.as_str(),
                     content => ele.content.as_str(),
                     target_url => ele.target_url.as_str(),
+                    source_id => ele.tools_source_id.as_str()
                 )).map_err(|err| err.to_string())?;
             }
 
@@ -118,6 +122,19 @@ impl ToolsSearch {
         Ok(())
     }
 
+    pub fn delete_by_source_id(&self, tools_source_id: &String) -> Result<(), String> {
+        if let Some(tools_index) = &self.index {
+            let schema = Self::get_schema();
+            let source_id = schema.get_field("source_id").map_err(|err| err.to_string())?;
+            let source_id_term = Term::from_field_text(source_id, &tools_source_id.as_str());
+            let mut index_writer: IndexWriter = tools_index.writer(50_000_000).map_err(|err| err.to_string())?;
+            index_writer.delete_term(source_id_term);
+            index_writer.commit().map_err(|err| err.to_string())?;
+
+        }
+
+        Ok(())
+    }
     fn extract_doc_by_url(&self, target_url: &Term) -> Result<Option<TantivyDocument>, String> {
         if let Some(tools_index) = &self.index {
             let reader = tools_index.reader().map_err(|err| err.to_string())?;

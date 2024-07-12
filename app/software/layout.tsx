@@ -1,3 +1,6 @@
+"use client"
+import { ScrollWrapper } from "@/components/scroll-wrapper";
+
 export default function SoftwareLayout({
   children,
 }: {
@@ -5,9 +8,12 @@ export default function SoftwareLayout({
 }) {
   return (
     <section className="flex flex-col items-center justify-center gap-4">
-    <div className="max-w-screen-xl text-center justify-center">
-      {children}
-    </div>
-  </section>
+      <ScrollWrapper>
+        <div className="max-w-screen-xl text-center justify-center">
+          {children}
+        </div>
+      </ScrollWrapper>
+
+    </section>
   );
 }

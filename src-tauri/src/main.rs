@@ -10,7 +10,6 @@ pub mod search;
 use std::{fs, sync::atomic::AtomicBool};
 
 use db::{SqlState, DB};
-use ::log::info;
 use native::{create_main_window, native_windows};
 use source::{ToolsSource, ToolsSourceItem};
 use tauri::{App, AppHandle, LogicalSize, Manager};
@@ -18,9 +17,10 @@ use uuid::Uuid;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn append_source(source_type: String, path: String, handle: AppHandle) -> Result<(), String> {
+fn append_source(source_type: i32, path: String, handle: AppHandle) -> Result<(), String> {
     let json_content = fs::read_to_string(&path).map_err(|err| err.to_string())?;
     let mut tools_source = source::parse_source(&json_content)?;
+    tools_source.source_type = source_type;
     tools_source.url = path.to_string().clone();
     tools_source.source_id = Uuid::new_v4().to_string();
     source::save_source(&tools_source, &handle)?;
@@ -68,6 +68,12 @@ fn save_local_source_item(source_item: ToolsSourceItem, handle: tauri::AppHandle
     // let source_item = serde_json::from_str(source_item.as_str()).map_err(|err| err.to_string())?;
     let item_id = source::save_local_tool_item(&source_item, &handle)?;
     Ok(item_id)
+}
+
+#[tauri::command]
+fn export_source(tools_list: Vec<i32>,out_path: String, handle: tauri::AppHandle) -> Result<(), String> {
+    source::export_source(tools_list, out_path, &handle)?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -136,7 +142,8 @@ fn main() {
             get_source_item_by_id,
             get_source_items_by_type,
             save_local_source_item,
-            search_tools
+            search_tools,
+            export_source
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

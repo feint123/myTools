@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use log::{info, kv::source};
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
@@ -38,12 +40,23 @@ pub struct ToolsSource {
     pub version: i32,
     pub author: String,
     pub url: String,
+    #[serde(skip_deserializing)]
     pub source_type: i32,
     #[serde(skip_deserializing)]
     pub last_sync: String,
     pub items: Vec<ToolsSourceItem>,
 }
+
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ToolsSourceExport {
+    pub name: String,
+    pub description: String,
+    pub version: i32,
+    pub author: String,
+    pub url: String,
+    pub items: Vec<ToolsSourceItem>,
+}
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ToolsSourceItem {
     #[serde(skip_deserializing)]
     pub id: i32,
@@ -86,8 +99,10 @@ pub fn save_source(tools_source: &ToolsSource, handle: &AppHandle) -> Result<(),
 pub fn delete_source(source_ids: Vec<String>, handle: &AppHandle) -> Result<(), String> {
     let db = DB.lock().map_err(|err|err.to_string())?;
     db.delete_source(&source_ids, &handle)?;
+    let tools_index = TOOLS_INDEX.lock().map_err(|err|err.to_string())?;
     for source_id in source_ids {
         db.delete_item(&source_id, &handle)?;
+        tools_index.delete_by_source_id(&source_id)?;
     }
     Ok(())
 }
@@ -152,4 +167,31 @@ pub fn save_local_tool_item(item: &ToolsSourceItem, handle: &AppHandle) -> Resul
 pub fn search_tool_items(keywords: String, handle: &AppHandle) -> Result<Vec<String>, String> {
     let tools_index = TOOLS_INDEX.lock().map_err(|err|err.to_string())?;
     return tools_index.search(keywords)
+}
+
+pub fn export_source(tools_list: Vec<i32>, out_path: String, handle: &AppHandle) -> Result<(), String> {
+    // 查询所有的tools数据
+    let db = DB.lock().map_err(|err|err.to_string())?;
+    let mut tools = vec![];
+    for ele in tools_list {
+        let tool = db.get_source_item_by_id(ele, handle)?;
+        let first_tool = tool[0].clone();
+        tools.push(first_tool);
+    }
+    // 构建source对象
+    let source = ToolsSourceExport {
+        name: "导出工具".to_string(),
+        description: "导出工具".to_string(),
+        version: 1,
+        author: "你的昵称".to_string(),
+        url: "".to_string(),
+        items: tools,
+    };
+
+    // 转换成json字符串
+    let export_json = serde_json::to_string(&source).map_err(|err|err.to_string())?;
+    // 写入out_path 路径的文件。
+    let mut file = File::create(format!("{}/{}",out_path,"tools-export.json")).map_err(|err|err.to_string())?;
+    file.write_all(export_json.as_bytes()).map_err(|err|err.to_string())?;
+    Ok(())
 }

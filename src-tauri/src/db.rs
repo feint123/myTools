@@ -120,7 +120,7 @@ impl DbManager {
     pub fn add_source(self: &Self, ts: &ToolsSource, handler: &AppHandle) -> Result<(), String> {
         self.init(&handler)?;
         self.connection.execute(
-            "INSERT INTO tools_source (source_id, name, description, version, author, url, source_type, last_sync) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT OR REPLACE INTO tools_source (source_id, name, description, version, author, url, source_type, last_sync) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             (&ts.source_id, &ts.name, &ts.description, &ts.version, &ts.author, &ts.url, &ts.source_type,
                  &time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_millis().to_string()),
         ).map_err(|err| err.to_string())?;

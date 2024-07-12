@@ -76,7 +76,7 @@ export const Navbar = () => {
   }
 
   function NavWarpper({ children }: { children: React.ReactNode }) {
-    return <NextUINavbar height={"52px"} className="bg-default-100" data-tauri-drag-region maxWidth="full">{children}</NextUINavbar>
+    return <NextUINavbar shouldHideOnScroll={false} height={"52px"} className="bg-default-100" data-tauri-drag-region maxWidth="full">{children}</NextUINavbar>
   }
   function OptionNav() {
     if (pathname.includes("/settings")) {

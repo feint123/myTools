@@ -3,7 +3,7 @@ import { Button, Selection, Dropdown, DropdownItem, DropdownMenu, DropdownTrigge
 import { SlOptionsVertical, SlRefresh } from "react-icons/sl";
 import { AiOutlineCopy, AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import { CiCircleList, CiFileOn } from "react-icons/ci";
-import { open } from "@tauri-apps/plugin-dialog";
+import { message, open } from "@tauri-apps/plugin-dialog";
 import { useState, useEffect, useMemo, Dispatch, SetStateAction } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import moment from "moment";
@@ -134,7 +134,7 @@ export default function SettingsPage() {
                               <TableCell>
 
                                 <div className="flex flex-row gap-1">
-                                  {item.categorys?.map(cate => <Chip key={cate} size="sm" color="primary">{cate}</Chip>)}
+                                  {item.categorys?.map(cate => <Chip key={cate} size="sm" variant="flat" color="primary">{cate}</Chip>)}
                                 </div>
                               </TableCell>
                             </TableRow>)
@@ -159,7 +159,7 @@ export default function SettingsPage() {
   }
 
   function AddSourceModal() {
-    const [selectType, setSelectType] = useState<string | number | null | undefined>("local")
+    const [selectType, setSelectType] = useState<string | number | null | undefined>("1")
     const [filePath, setFilePath] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     async function chooseSourceFile() {
@@ -181,12 +181,13 @@ export default function SettingsPage() {
     }
     function appendSource(onClose: () => void) {
       setIsLoading(true);
-      invoke("append_source", { "sourceType": selectType, "path": filePath })
-        .then(() => {
+      invoke("append_source", { "sourceType": Number.parseInt(selectType as string), "path": filePath })
+        .then(async() => {
           fetchSource(setSourceList)
+          await message(`导入工具源成功`, { title: '工具源导入', kind: 'info' });
         })
-        .catch((e) => {
-          console.log(e)
+        .catch(async (e) => {
+          await message(`导入工具源失败【${e}】`, { title: '工具源导入', kind: 'error' });
         })
         .finally(() => {
           setIsLoading(false)
@@ -201,7 +202,7 @@ export default function SettingsPage() {
               <ModalHeader className="flex flex-col gap-1">添加工具源</ModalHeader>
               <ModalBody>
                 <Tabs selectedKey={selectType} onSelectionChange={setSelectType}>
-                  <Tab isDisabled key="network" title="网络">
+                  <Tab isDisabled key="0" title="网络">
                     <div className="flex flex-col gap-4">
                       <Input labelPlacement="outside" startContent={
                         <div className="pointer-events-none flex items-center">
@@ -210,7 +211,7 @@ export default function SettingsPage() {
                       } type="url" label="源地址: " placeholder="请输入你想添加的源" />
                     </div>
                   </Tab>
-                  <Tab key="local" title="本地">
+                  <Tab key="1" title="本地">
                     <div className="flex flex-col gap-4">
                       {(filePath && filePath.length > 0) ?
                         <Snippet>{filePath}</Snippet>

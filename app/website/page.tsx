@@ -74,7 +74,7 @@ export default function SoftwarePage() {
   //get_source_items_by_type
 
   return (
-    <div>
+    <div className="pb-8">
       <Tabs aria-label="Options" isVertical={true} items={groupedData} classNames={{"tab":"text-left"}}>
         {
         (item: SoftwareItem) =>  (

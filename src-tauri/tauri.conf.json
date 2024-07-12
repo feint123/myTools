@@ -1,6 +1,6 @@
 {
-  "productName": "my-tools",
-  "version": "0.0.0",
+  "productName": "myTools",
+  "version": "0.0.1",
   "identifier": "com.feint.mytools",
   "build": {
     "beforeDevCommand": "npm run dev",

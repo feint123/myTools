@@ -84,7 +84,7 @@ export default function ToolsDetail({toolsId}:{toolsId: string}) {
   
         <h2 className="text-xl font-semibold mt-8 mb-4 text-left">说明</h2>
   
-        <pre className="mb-8 text-left bg-default-100 rounded-medium shadow-sm p-4 text-wrap">
+        <pre className="mb-8 text-left bg-default-100 rounded-medium shadow-sm p-4 text-balance break-words">
           {tools.items[0]?.content}
         </pre>
       </div>
