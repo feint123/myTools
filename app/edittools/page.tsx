@@ -30,8 +30,6 @@ export default function EditToolsPage() {
   }
 
   return (
-    <Suspense fallback={<p>Loading feed...</p>}>
       <EditArea />
-    </Suspense>
   )
 }

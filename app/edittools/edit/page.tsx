@@ -12,7 +12,7 @@ import { ToolsItem } from "@/app/settings/page";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrent } from "@tauri-apps/api/webviewWindow";
 import { listen, TauriEvent } from "@tauri-apps/api/event";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const getBase64 = (file: RcFile): Promise<string> =>
@@ -60,6 +60,8 @@ function FileUploaderWrapper({ children }: { children: React.ReactNode }) {
 
 
 export default function EditToolsEditPage() {
+  const params = useSearchParams()
+  const toolId = params.get("toolId")
   const categorys = [{ name: "音频", icon: (<AiOutlineAudio />) }, { name: "视频", icon: (<AiOutlineVideoCamera />) },
   { name: "图片", icon: (<AiOutlinePicture />) }, { name: "AI", icon: (<AiOutlineRobot />) },
   { name: "编程", icon: (<AiOutlineCode />) }, { name: "文档", icon: (<AiOutlineFileWord />) },
@@ -89,6 +91,47 @@ export default function EditToolsEditPage() {
     });
   }, [setAntdTheme])
 
+  useEffect(() => {
+    console.log(toolId)
+    if (toolId) {
+      invoke<ToolsItem[]>("get_source_item_by_id", { itemId: Number.parseInt(toolId) })
+        .then((result: ToolsItem[]) => {
+          if (result && result.length > 0) {
+            console.log(result[0])
+            setTitle(result[0].title ?? "")
+            setDescription(result[0].description ?? "")
+            setContent(result[0].content ?? "")
+            setTargetUrl((result[0].target_url ?? "").replace("https://",""))
+            setSelectToolTypes(Array.of(result[0].tool_type as string))
+            setSelectToolCates(result[0].categorys)
+            setCoverFileList([{
+                uid: '0',
+                name: `image.png`,
+                status: 'done',
+                url: result[0].cover_image_url,
+            }])
+            let previewImageUrls = result[0].preview_image_url
+            let previewImages:UploadFile[] = []
+            if(previewImageUrls && previewImageUrls.length > 0) {
+              for(let i = 0; i < previewImageUrls.length; i++) {
+                previewImages.push({
+                  uid: `${i}`,
+                  name: `image-${i}.png`,
+                  status: 'done',
+                  url: previewImageUrls[i],
+                })
+              }
+            }
+          setPreviewFileList(previewImages)
+          }
+        }).catch(e => {
+          console.log(e)
+        })
+    }
+  }, [setTitle, setDescription, setContent, setTargetUrl, setSelectToolTypes, setSelectToolCates,
+    setCoverFileList, setPreviewFileList
+  ])
+
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
     setCoverFileList(newFileList);
 
@@ -106,16 +149,21 @@ export default function EditToolsEditPage() {
     setIsSubmitLoading(true)
     let coverUrl = ""
     let file = coverFileList[0]
-    if (file && file.originFileObj) {
+    if (file && !file.url && file.originFileObj) {
       coverUrl = await getBase64(file.originFileObj) as string;
+    } else  {
+      coverUrl = file.url??""
     }
     let previewUrls: string[] = []
     for (let i = 0; i < previewFileList.length; i++) {
       let previewFile = previewFileList[i]
-      if (previewFile && previewFile.originFileObj) {
-        let url = await getBase64(previewFile.originFileObj) as string;
-        previewUrls.push(url)
+      let url = ""
+      if (previewFile && previewFile.originFileObj && !previewFile.url) {
+        url = await getBase64(previewFile.originFileObj) as string;
+      } else {
+        url = file.url??""
       }
+      previewUrls.push(url)
     }
     let targetUrlC = targetUrl.trim()
     if (targetUrlC.startsWith("http://")) {

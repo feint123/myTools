@@ -18,7 +18,9 @@ export default function EditToolsLayout({
       <ScrollShadow orientation="vertical" className="h-[calc(100vh-52px)] w-[calc(100vw-300px)] fixed px-8 py-4
         top-[52px] left-[300px] flex flex-col items-center">
         <main className="max-w-screen-xl w-full pt-2">
+          <Suspense>
           {children}
+          </Suspense>
         </main>
       </ScrollShadow>
     </section>
