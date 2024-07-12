@@ -168,7 +168,7 @@ export default function EditToolsEditPage() {
     let targetUrlC = targetUrl.trim()
     if (targetUrlC.startsWith("http://")) {
       targetUrlC.replace("http://", "https://")
-    } else if (targetUrlC.includes("https://")) {
+    } else if (!targetUrlC.includes("https://")) {
       targetUrlC = "https://" + targetUrlC;
     }
     const toolsItem: ToolsItem = {

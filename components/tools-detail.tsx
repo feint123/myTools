@@ -10,6 +10,7 @@ import 'swiper/css/navigation';
 import { open } from "@tauri-apps/plugin-shell"
 import { AiOutlineEdit } from "react-icons/ai"
 import { Image } from "antd"
+import { motion } from "framer-motion"
 
 export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
@@ -34,8 +35,8 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
     <SwiperSlide key={index} className="item-center justify-center align-center">
       <Image
         preview={{
-          maskClassName:"rounded-lg",
-          classNames:{mask:"backdrop-blur-md"},
+          maskClassName: "rounded-lg",
+          classNames: { mask: "backdrop-blur-md" },
         }}
         className="w-full h-full rounded-lg"
         alt="工具预览"
@@ -57,7 +58,9 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
   return (
     tools.items[0] ? (
-      <div className="w-full pb-8">
+      <motion.div layout initial={{ y: -10, opacity: 0.2 }} animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 100 }}
+        className="w-full pb-8">
         <div className="flex flex-row mb-8 gap-4 justify-between text-left">
           <Avatar size="lg" isBordered radius="lg" className="min-w-[64px] h-[64px]" src={tools.items[0]?.cover_image_url} />
 
@@ -95,7 +98,7 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
         <pre className="mb-8 text-left bg-default-100 rounded-medium shadow-sm p-4 text-wrap break-words">
           {tools.items[0]?.content}
         </pre>
-      </div>
+      </motion.div>
     ) : (
       <div></div>
     )

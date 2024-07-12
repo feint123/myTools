@@ -141,7 +141,7 @@ export const Navbar = () => {
             <Tab key="/edittools" title={<div className="flex items-center space-x-2">
               <AiOutlineEdit />
               <span>编辑</span>
-            </div>} href="/edittools?toolId=0" />
+            </div>} href="/edittools/edit" />
             <Tab key="/search" title={<div className="flex items-center space-x-2">
               <SlMagnifier />
               <span>搜索</span>

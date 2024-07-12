@@ -1,13 +1,13 @@
 "use client"
 
 import { WebsiteCard } from "@/components/website-card";
-import {  Tab, Tabs } from "@nextui-org/react";
+import { Tab, Tabs } from "@nextui-org/react";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
-import { AiOutlineAudio, AiOutlineCode, AiOutlineContainer, AiOutlineDash, AiOutlineFileImage, AiOutlineFileWord, AiOutlineInbox, AiOutlineOpenAI, AiOutlinePlayCircle, AiOutlineRobot, AiOutlineVideoCamera } from "react-icons/ai";
+import { AiOutlineAudio, AiOutlineCode, AiOutlineFileImage, AiOutlineFileWord, AiOutlineInbox, AiOutlineRobot, AiOutlineVideoCamera } from "react-icons/ai";
 
 import { ToolsItem } from "../settings/page";
 import { invoke } from "@tauri-apps/api/core";
-import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
 
 interface SoftwareItem {
@@ -47,7 +47,8 @@ export default function SoftwarePage() {
 
   function websiteCards(items: ToolsItem[]) {
     return items.map((tool) => (
-      <div key={tool.id} >
+      <div
+        key={tool.id} >
         <WebsiteCard param={tool} />
       </div>
     ))
@@ -64,7 +65,7 @@ export default function SoftwarePage() {
       case "编程":
         return <AiOutlineCode />
       case "AI":
-        return <AiOutlineRobot/>
+        return <AiOutlineRobot />
       case "聚合":
         return <AiOutlineInbox />
       case "图片":
@@ -74,11 +75,11 @@ export default function SoftwarePage() {
   //get_source_items_by_type
 
   return (
-    <div className="pb-8">
-      <Tabs aria-label="Options" isVertical={true} items={groupedData} classNames={{"tab":"text-left"}}>
+    <motion.div layout className="pb-8">
+      <Tabs aria-label="Options" isVertical={true} items={groupedData} classNames={{ "tab": "text-left" }}>
         {
-        (item: SoftwareItem) =>  (
-           <Tab key={item.category} title={<div className="flex items-center space-x-2">
+          (item: SoftwareItem) => (
+            <Tab key={item.category} title={<div className="flex items-center space-x-2">
               {getCateIcon(item.category)}
               <span>{item.category}</span>
             </div>}>
@@ -88,12 +89,7 @@ export default function SoftwarePage() {
             </Tab>
           )
         }
-
-       
       </Tabs>
-    </div>
-
-
-
+    </motion.div>
   );
 }

@@ -33,7 +33,7 @@ export default function AboutPage() {
     </div>
 
     <p className="text-foreground-500">
-      一个可配置的工具箱，旨在帮助用户快速找到<Code color="success" className="mx-1" size="sm">免费、免登陆</Code>的工具。<br/>
+      一个可配置的工具箱，旨在帮助用户快速找到<Code color="success" className="mx-1" size="sm">免费</Code>的工具。<br/>
       欢迎大家分享工具，一起打造一个好用的工具箱。<br/>
       使用过程中遇到问题，可以在仓库中提交
       <Code onClick={() => { openLink("https://github.com/feint123/myTools/issues") }} className="mx-1 cursor-pointer" size="sm">Issues</Code>。

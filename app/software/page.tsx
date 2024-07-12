@@ -8,6 +8,7 @@ import { AiOutlineAudio, AiOutlineCode, AiOutlineContainer, AiOutlineDash, AiOut
 import { ToolsItem } from "../settings/page";
 import { invoke } from "@tauri-apps/api/core";
 import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
 
 
 interface SoftwareItem {
@@ -74,7 +75,7 @@ export default function SoftwarePage() {
   //get_source_items_by_type
 
   return (
-    <div className="pb-8">
+    <motion.div layout className="pb-8">
       <Tabs aria-label="Options" isVertical={true} items={groupedData} classNames={{"tab":"text-left"}}>
         {
         (item: SoftwareItem) =>  (
@@ -88,10 +89,8 @@ export default function SoftwarePage() {
             </Tab>
           )
         }
-
-       
       </Tabs>
-    </div>
+    </motion.div>
 
 
 

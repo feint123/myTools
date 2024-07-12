@@ -3,10 +3,11 @@
 
 import { Input, Chip, Listbox, ListboxItem, ScrollShadow } from "@nextui-org/react";
 import { useEffect, useMemo, useState } from "react";
-import { AiOutlineArrowRight, AiOutlineDelete} from "react-icons/ai";
+import { AiOutlineArrowRight, AiOutlineDelete } from "react-icons/ai";
 import { ToolsItem } from "@/app/settings/page";
 import { invoke } from "@tauri-apps/api/core";
 import { SlMagnifier } from "react-icons/sl";
+import { motion } from "framer-motion";
 
 export default function EditToolsPage() {
   const [searchKeywords, setSearchKeywords] = useState<string>("");
@@ -15,7 +16,7 @@ export default function EditToolsPage() {
     setSearchKeywords(inputValue)
     invoke("search_tools", { keywords: inputValue }).then(result => {
       if (result && result instanceof Array) {
-  
+
         let resultItemList = result.map((item: string) => {
           console.log(JSON.parse(item) as ToolsItem)
           return JSON.parse(item) as ToolsItem
@@ -27,7 +28,7 @@ export default function EditToolsPage() {
     })
   }
 
-  function appendHistory(words:string) {
+  function appendHistory(words: string) {
     if (histories.includes(words)) {
       let index = histories.indexOf(words)
       histories.splice(index, 1)
@@ -38,9 +39,9 @@ export default function EditToolsPage() {
 
   function clearHistory() {
     localStorage.setItem("search-history", JSON.stringify([]))
-    setHistories([]) 
+    setHistories([])
   }
-  const [histories,setHistories] = useState<string[]>([])
+  const [histories, setHistories] = useState<string[]>([])
 
   useEffect(() => {
     const data = localStorage.getItem("search-history");
@@ -55,12 +56,12 @@ export default function EditToolsPage() {
         <p className="text-sm font-bold text-foreground-500 ml-2">历史搜索</p>
         <div className="flex gap-2 hover:bg-default-200 text-foreground-500 hover:text-foreground-700 
         rounded-full px-3 py-1 ease-in-out duration-300"
-        onClick={clearHistory}
+          onClick={clearHistory}
         ><AiOutlineDelete /><span className="text-xs">清空</span></div>
       </div>
       <ScrollShadow hideScrollBar orientation="horizontal">
         <div className="flex flex-row py-1">
-          { histories.map(item =>
+          {histories.map(item =>
             (<Chip variant="flat" color="warning" key={item} className="mx-1 my-1" onClick={() => { testSearch(item) }}>{item}</Chip>)
           )}
 
@@ -78,22 +79,25 @@ export default function EditToolsPage() {
   }, [searchKeywords])
 
   const topContent = useMemo(() => {
-    return (<Input placeholder="请输入关键词" isClearable size="lg" fullWidth startContent={<SlMagnifier />} value={searchKeywords}
-      onValueChange={testSearch} classNames={{
-        inputWrapper: "shadow-none bg-default-200 rounded-b-none rounded-t-xl"
-      }} />)
+    return (
+      <motion.div layoutId="undoanim">
+        <Input placeholder="请输入关键词" isClearable size="lg" fullWidth startContent={<SlMagnifier />} value={searchKeywords}
+          onValueChange={testSearch} classNames={{
+            inputWrapper: "shadow-none bg-default-200 rounded-b-none rounded-t-xl"
+          }} />
+      </motion.div>)
   }, [searchKeywords, testSearch])
   return (
-    <div>
+    <motion.div layout >
       <div className="flex flex-col gap-2">
 
-        <Listbox label="工具列表" emptyContent={searchKeywords.length > 0 ? emptyContent: (<div></div>)} variant="flat" className="rounded-xl bg-default-100 border-default-200 border-small"
+        <Listbox label="工具列表" emptyContent={searchKeywords.length > 0 ? emptyContent : (<div></div>)} variant="flat" className="rounded-xl bg-default-100 border-default-200 border-small"
           classNames={{
             list: "max-h-[calc(100vh-200px)] overflow-x-hidden overflow-y-auto px-2 py-1",
             base: "p-0"
           }}
           topContent={topContent}
-          bottomContent={searchKeywords.length>0 ? (<></>) :bottomContent}
+          bottomContent={searchKeywords.length > 0 ? (<></>) : bottomContent}
           items={searchResults} >
           {
             (item: ToolsItem) => {
@@ -115,6 +119,6 @@ export default function EditToolsPage() {
 
 
       </div>
-    </div>
+    </motion.div>
   )
 }
