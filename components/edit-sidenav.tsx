@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Link, Listbox, ListboxItem, Avatar, Modal, ModalContent, ModalHeader, ModalBody, Table, TableHeader, TableColumn, TableBody, Spinner, TableRow, TableCell, ModalFooter, useDisclosure, ScrollShadow } from "@nextui-org/react";
+import { Button, Link, Listbox, ListboxItem, Avatar, Modal, ModalContent, ModalHeader, ModalBody, Table, TableHeader, TableColumn, TableBody, Spinner, TableRow, TableCell, ModalFooter, useDisclosure, ScrollShadow, Chip } from "@nextui-org/react";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
-import { ToolsItem } from "@/app/settings/page";
+import { ToolsItem, ToolsSource } from "@/app/settings/page";
 import { invoke } from "@tauri-apps/api/core";
-import { AiOutlineExport, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineExport, AiOutlineInfo, AiOutlineInfoCircle, AiOutlinePlus } from "react-icons/ai";
 import { useSearchParams } from "next/navigation";
 import { SelectType } from "@/app/edittools/edit/page";
 import { message, open } from "@tauri-apps/plugin-dialog";
@@ -21,6 +21,18 @@ export const EditSidenav = () => {
 
     },
   })
+  const sources: AsyncListData<ToolsSource> = useAsyncList({
+    async load(state: AsyncListLoadOptions<ToolsSource, string>) {
+      let result: ToolsSource[] = await invoke("get_all_source", {})
+      return {
+        items: result
+      }
+
+    },
+  })
+  
+  const sourceNameMap = new Map(sources.items.map(item => [item.source_id, item.name]));
+ 
 
   const { isOpen: isToolsOpen, onOpen: onToolsOpen, onOpenChange: onToolsOpenChange } = useDisclosure();
   function ToolsListModal() {
@@ -154,8 +166,12 @@ export const EditSidenav = () => {
                 <div className="flex gap-2 items-center">
                   <Avatar alt={item.title} className="flex-shrink-0" size="sm" src={item.cover_image_url} />
 
-                  <div className="flex flex-col text-left w-full truncate">
-                    <span className="text-small truncate">{item.title}</span>
+                  <div className="flex flex-col text-left w-full truncate gap-1">
+                    <div className="flex flex-row gap-2">
+                      <span className="text-small truncate">{item.title}</span>
+                      <Chip startContent={<AiOutlineInfoCircle/>} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id)}</Chip>
+                    </div>
+                   
                     <span className="text-tiny text-default-400 truncate">{item.description}</span>
                   </div>
                 </div>

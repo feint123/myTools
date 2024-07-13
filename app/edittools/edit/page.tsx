@@ -283,7 +283,7 @@ export default function EditToolsEditPage() {
             </Upload>
           {/* </ImgCrop> */}
         </ConfigProvider>
-        <p className="text-xs text-foreground-400 text-right">推荐，尺寸：1200x800；格式：webp</p>
+        <p className="text-xs text-foreground-400 text-right">尺寸：1200x800；格式：webp</p>
       </FileUploaderWrapper>
       <Textarea
         minRows={8}

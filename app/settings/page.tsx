@@ -9,7 +9,7 @@ import { invoke } from "@tauri-apps/api/core";
 import moment from "moment";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
 
-interface ToolsSource {
+export interface ToolsSource {
   id: number | undefined;
   source_id: string | undefined;
   name: string | undefined;
@@ -30,6 +30,7 @@ export interface ToolsItem {
   preview_image_url: string[] | undefined;
   tool_type: string | undefined;
   author: string | undefined;
+  tools_source_id: string | undefined;
 }
 export default function SettingsPage() {
 

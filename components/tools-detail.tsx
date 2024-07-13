@@ -69,7 +69,7 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
           <div className="flex flex-col w-full">
             <div className="flex flex-row gap-1">
-              <h2 className="text-2xl font-semibold">{tools.items[0]?.title}</h2>
+              <h2 className="text-2xl font-semibold line-clamp-1">{tools.items[0]?.title}</h2>
               <Link href={`/edittools/edit?toolId=${tools.items[0]?.id}`} size="sm"><AiOutlineEdit className="text-lg text-foreground-500" /></Link>
             </div>
             <p className="font-light text-base text-gray-500 line-clamp-1 max-w-lg">{tools.items[0]?.description}</p>
@@ -97,7 +97,7 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
         }
 
         <h2 className="text-xl font-semibold mt-8 mb-4 text-left">说明</h2>
-        <Markdown className="markdown-body mb-8 text-left text-wrap break-words">
+        <Markdown className="markdown-body select-text mb-8 text-left text-wrap break-words">
           {tools.items[0]?.content}
         </Markdown>
 
