@@ -20,3 +20,7 @@ body {
 .markdown-body ol{
     @apply list-decimal; 
  }
+
+.markdown-body img {
+    @apply rounded-lg;
+}

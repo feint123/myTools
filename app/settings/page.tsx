@@ -215,7 +215,7 @@ export default function SettingsPage() {
                   <Tab key="1" title="本地">
                     <div className="flex flex-col gap-4">
                       {(filePath && filePath.length > 0) ?
-                        <Snippet>{filePath}</Snippet>
+                        <Snippet classNames={{pre:"break-words line-clamp-1"}}>{filePath}</Snippet>
                         :
                         <></>
                       }
