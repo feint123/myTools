@@ -27,6 +27,7 @@ export const EditSidenav = () => {
     const [selectedSource, setSelectedSource] = useState<SelectType>()
 
     const [isToolsLoading, setIsToolsLoading] = useState(true);
+    const params = useSearchParams();
     let toolsList: AsyncListData<ToolsItem> = useAsyncList({
       async load(state: AsyncListLoadOptions<ToolsItem, string>) {
 
@@ -135,21 +136,21 @@ export const EditSidenav = () => {
   useEffect(() => {
     const toolId = params.get("toolId")
     if (toolId) {
-      setSelectedToolId(toolId)
+      setSelectedToolId([toolId])
     }
   }, [setSelectedToolId, params])
   return (
     <div>
       <ToolsListModal />
       <Listbox topContent={topContent} label="工具列表" emptyContent="没有工具哦" className="rounded-tr-lg bg-default-100 shadow h-[calc(100vh-64px)]"
-        selectedKeys={selectedToolId} onSelectionChange={setSelectedToolId} selectionMode="single" items={tools.items}
+        selectedKeys={selectedToolId} onSelectionChange={setSelectedToolId} disallowEmptySelection selectionMode="single" items={tools.items}
         classNames={{
           list: "max-h-[calc(100vh-64px)] overflow-y-auto overflow-x-hidden",
         }}>
         {
           (item: ToolsItem) => {
             return (
-              <ListboxItem textValue={item.title} key={item.id ?? 0} href={`/edittools?toolId=${item.id}`} >
+              <ListboxItem textValue={item.title} key={item.id ?? "0"} href={`/edittools?toolId=${item.id}`} >
                 <div className="flex gap-2 items-center">
                   <Avatar alt={item.title} className="flex-shrink-0" size="sm" src={item.cover_image_url} />
 

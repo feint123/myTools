@@ -12,3 +12,11 @@ body {
     user-select:none;
     cursor: default;
 }
+
+.markdown-body ul{
+   @apply list-disc; 
+}
+
+.markdown-body ol{
+    @apply list-decimal; 
+ }

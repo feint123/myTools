@@ -1,8 +1,9 @@
+"use client"
 import { ToolsItem } from "@/app/settings/page"
 import { Avatar, Button, Divider, Link } from "@nextui-org/react"
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data"
 import { invoke } from "@tauri-apps/api/core"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Navigation, Pagination } from "swiper/modules"
 import { Swiper, SwiperSlide } from "swiper/react"
 import 'swiper/css';
@@ -11,6 +12,8 @@ import { open } from "@tauri-apps/plugin-shell"
 import { AiOutlineEdit } from "react-icons/ai"
 import { Image } from "antd"
 import { motion } from "framer-motion"
+import Markdown from "react-markdown"
+import "github-markdown-css"
 
 export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
@@ -94,10 +97,10 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
         }
 
         <h2 className="text-xl font-semibold mt-8 mb-4 text-left">说明</h2>
-
-        <pre className="mb-8 text-left bg-default-100 rounded-medium shadow-sm p-4 text-wrap break-words">
+        <Markdown className="markdown-body mb-8 text-left text-wrap break-words">
           {tools.items[0]?.content}
-        </pre>
+        </Markdown>
+
       </motion.div>
     ) : (
       <div></div>

@@ -150,7 +150,7 @@ export default function EditToolsEditPage() {
     let file = coverFileList[0]
     if (file && !file.url && file.originFileObj) {
       coverUrl = await getBase64(file.originFileObj) as string;
-    } else  {
+    } else if(file) {
       coverUrl = file.url??""
     }
     let previewUrls: string[] = []
@@ -159,7 +159,7 @@ export default function EditToolsEditPage() {
       let url = ""
       if (previewFile && previewFile.originFileObj && !previewFile.url) {
         url = await getBase64(previewFile.originFileObj) as string;
-      } else {
+      } else if(previewFile) {
         url = previewFile.url??""
       }
       previewUrls.push(url)
