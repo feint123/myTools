@@ -181,6 +181,7 @@ export default function EditToolsEditPage() {
       preview_image_url: previewUrls,
       tool_type: Array.from(selectToolTypes).map(item => item.toString())[0],
       author: "hello",
+      tools_source_id: "",
     }
 
 

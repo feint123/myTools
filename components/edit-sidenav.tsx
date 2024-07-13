@@ -110,7 +110,12 @@ export const EditSidenav = () => {
                         {
                           (item: ToolsItem) => {
                             return (<TableRow key={item.id}>
-                              <TableCell>{item.title}</TableCell>
+                              <TableCell>
+                                <div className="flex flex-row gap-2">
+                                <span>{item.title}</span>
+                                <Chip startContent={<AiOutlineInfoCircle/>} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id)}</Chip>
+                                </div>
+                                </TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
                                   <p className="truncate">{item.description}</p>
