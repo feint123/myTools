@@ -91,12 +91,10 @@ export default function EditToolsEditPage() {
   }, [setAntdTheme])
 
   useEffect(() => {
-    console.log(toolId)
     if (toolId) {
       invoke<ToolsItem[]>("get_source_item_by_id", { itemId: Number.parseInt(toolId) })
         .then((result: ToolsItem[]) => {
           if (result && result.length > 0) {
-            console.log(result[0])
             setTitle(result[0].title ?? "")
             setDescription(result[0].description ?? "")
             setContent(result[0].content ?? "")
@@ -128,7 +126,7 @@ export default function EditToolsEditPage() {
         })
     }
   }, [setTitle, setDescription, setContent, setTargetUrl, setSelectToolTypes, setSelectToolCates,
-    setCoverFileList, setPreviewFileList
+    setCoverFileList, setPreviewFileList,toolId
   ])
 
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>

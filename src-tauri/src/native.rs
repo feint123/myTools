@@ -54,7 +54,6 @@ pub fn native_windows(
        "tabbingIdentifier": "test"
      }
 */
-#[cfg(target_os = "macos")]
 pub fn create_main_window(app: &AppHandle) -> WebviewWindow {
     #[cfg(target_os = "macos")]
     let style = tauri::TitleBarStyle::Overlay;
@@ -86,4 +85,41 @@ pub fn create_main_window(app: &AppHandle) -> WebviewWindow {
     native_windows(&main_window, None, true);
 
     return main_window;
+}
+
+/**
+ * 创建设置窗口
+ */
+pub fn create_setting_window(app: &AppHandle) -> WebviewWindow {
+  
+    #[cfg(target_os = "macos")]
+    let style = tauri::TitleBarStyle::Overlay;
+
+    #[cfg(target_os = "windows")]
+    let style = tauri::TitleBarStyle::Visible;
+
+    let setting_window = tauri::WebviewWindowBuilder::new(
+        app,
+        "settings", /* the unique window label */
+        tauri::WebviewUrl::App("/settings".parse().unwrap()),
+    )
+    .decorations(true)
+    .visible(true)
+    .accept_first_mouse(true)
+    .hidden_title(true)
+    .title_bar_style(style)
+    .build()
+    .expect("failed to build window");
+    
+    setting_window
+        .set_size(LogicalSize::new(800, 600))
+        .expect("failed to set size");
+    setting_window
+        .set_resizable(false)
+        .expect("failed to set resizable");
+    
+    #[cfg(target_os = "macos")]
+    native_windows(&setting_window, None, true);
+    return setting_window;
+    
 }

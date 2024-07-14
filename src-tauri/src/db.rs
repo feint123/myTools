@@ -223,6 +223,25 @@ impl DbManager {
         Ok(sources)
     }
 
+    pub fn delete_source_item_by_id(
+        self: &Self,
+        item_id: i32,
+        handler: &AppHandle,
+    ) -> Result<(), String> {
+        self.init(&handler)?;
+        let mut prepare = self
+            .connection
+            .prepare("DELETE FROM tools_source_item WHERE id = ?1")
+            .map_err(|err| err.to_string())?;
+
+        prepare
+            .execute((item_id,))
+            .map_err(|err| err.to_string())?;
+
+        Ok(())
+    }
+
+
     pub fn get_source_item_by_url(
         self: &Self,
         target_url: String,
@@ -291,7 +310,7 @@ impl DbManager {
         self.init(&handler)?;
         let mut sql_template = "SELECT * FROM tools_source_item Where tools_source_id = ?";
         if id.len() == 0 {
-            sql_template = "SELECT * FROM tools_source_item";
+            sql_template = "SELECT * FROM tools_source_item ORDER BY id DESC";
         }
         info!("sql template is {sql_template}");
         let mut prepare = self

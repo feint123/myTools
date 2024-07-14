@@ -195,3 +195,9 @@ pub fn export_source(tools_list: Vec<i32>, out_path: String, handle: &AppHandle)
     file.write_all(export_json.as_bytes()).map_err(|err|err.to_string())?;
     Ok(())
 }
+
+pub(crate) fn delete_source_item_by_id(item_id: i32, handle: &AppHandle) -> Result<(), String>{
+    let db = DB.lock().map_err(|err|err.to_string())?;
+    db.delete_source_item_by_id(item_id, handle)?;
+    Ok(())
+}

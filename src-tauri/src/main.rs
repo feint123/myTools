@@ -7,12 +7,12 @@ pub mod log;
 pub mod native;
 pub mod search;
 
-use std::{fs, sync::atomic::AtomicBool};
+use std::{env, fs, sync::atomic::AtomicBool};
 
-use db::{SqlState, DB};
-use native::{create_main_window, native_windows};
+use db::{SqlState};
+use native::{create_main_window, create_setting_window};
 use source::{ToolsSource, ToolsSourceItem};
-use tauri::{App, AppHandle, LogicalSize, Manager};
+use tauri::{menu::{ContextMenu, Menu}, App, AppHandle, Manager};
 use uuid::Uuid;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -51,6 +51,13 @@ fn get_source_item_by_id(item_id: i32, handle: tauri::AppHandle) -> Result<Vec<T
 }
 
 #[tauri::command]
+fn delete_source_item_by_id(item_id: i32, handle: tauri::AppHandle) -> Result<(), String> {
+    source::delete_source_item_by_id(item_id, &handle)?;
+    Ok(())
+}
+
+
+#[tauri::command]
 fn get_source_items_by_type(tool_type: String, handle: tauri::AppHandle) -> Result<Vec<ToolsSourceItem>, String> {
     let list = source::query_items_by_type(tool_type, &handle)?;
     Ok(list)
@@ -77,40 +84,12 @@ fn export_source(tools_list: Vec<i32>,out_path: String, handle: tauri::AppHandle
 }
 
 #[tauri::command]
-fn show_settings(app: AppHandle) -> Result<(), String> {
-    if let Some(window) = app.get_webview_window("settings") {
+fn show_settings(handle: AppHandle) -> Result<(), String> {
+    if let Some(window) = handle.get_webview_window("settings") {
         window.show().map_err(|err| err.to_string()).unwrap();
         Ok(())
     } else {
-        #[cfg(target_os = "macos")]
-        let style = tauri::TitleBarStyle::Overlay;
-    
-        #[cfg(target_os = "windows")]
-        let style = tauri::TitleBarStyle::Visible;
-
-        let setting_window = tauri::WebviewWindowBuilder::new(
-            &app,
-            "settings", /* the unique window label */
-            tauri::WebviewUrl::App("/settings".parse().unwrap()),
-        )
-        .decorations(true)
-        .visible(true)
-        .accept_first_mouse(true)
-        .hidden_title(true)
-        .title_bar_style(style)
-        .build()
-        .expect("failed to build window");
-        
-        setting_window
-            .set_size(LogicalSize::new(800, 600))
-            .expect("failed to set size");
-        setting_window
-            .set_resizable(false)
-            .expect("failed to set resizable");
-        
-        #[cfg(target_os = "macos")]
-        native_windows(&setting_window, None, true);
-
+        let setting_window = create_setting_window(&handle);
         setting_window
             .show()
             .map_err(|err| err.to_string())
@@ -143,7 +122,8 @@ fn main() {
             get_source_items_by_type,
             save_local_source_item,
             search_tools,
-            export_source
+            export_source,
+            delete_source_item_by_id
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
