@@ -1,17 +1,15 @@
 use std::{
     fs,
     path::PathBuf,
-    str::FromStr,
     sync::{atomic::AtomicBool, Arc, Mutex},
     time,
 };
 
 use crate::source::{ToolsSource, ToolsSourceItem};
 use lazy_static::lazy_static;
-use log::{info};
-use rusqlite::{ Connection, Row};
+use log::info;
+use rusqlite::{Connection, Row};
 use tauri::{AppHandle, Manager};
-
 
 #[derive(Debug)]
 pub struct DbManager {
@@ -73,8 +71,6 @@ pub fn init_db_conn(handle: &AppHandle) -> Result<(), String> {
 }
 
 impl DbManager {
-
-
     fn init(self: &Self, handler: &AppHandle) -> Result<(), String> {
         let state = handler.state::<SqlState>();
         if !state.0.load(std::sync::atomic::Ordering::Relaxed) {
@@ -234,13 +230,10 @@ impl DbManager {
             .prepare("DELETE FROM tools_source_item WHERE id = ?1")
             .map_err(|err| err.to_string())?;
 
-        prepare
-            .execute((item_id,))
-            .map_err(|err| err.to_string())?;
+        prepare.execute((item_id,)).map_err(|err| err.to_string())?;
 
         Ok(())
     }
-
 
     pub fn get_source_item_by_url(
         self: &Self,

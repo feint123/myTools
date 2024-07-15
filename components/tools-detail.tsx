@@ -14,6 +14,7 @@ import { Image } from "antd"
 import { motion } from "framer-motion"
 import Markdown from "react-markdown"
 import "github-markdown-css"
+import remarkGfm from "remark-gfm"
 
 export default function ToolsDetail({ toolsId }: { toolsId: string }) {
 
@@ -107,7 +108,7 @@ export default function ToolsDetail({ toolsId }: { toolsId: string }) {
         }
 
         <h2 className="text-xl font-semibold mt-8 mb-4 text-left">说明</h2>
-        <Markdown className="markdown-body select-text mb-8 py-2 px-3 rounded-lg text-left text-wrap break-words">
+        <Markdown remarkPlugins={[remarkGfm]} className="markdown-body select-text mb-8 py-2 px-3 rounded-lg text-left text-wrap break-words">
           {tools.items[0]?.content}
         </Markdown>
 

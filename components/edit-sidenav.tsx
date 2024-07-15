@@ -1,16 +1,15 @@
 "use client"
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Link, Listbox, ListboxItem, Avatar, Modal, ModalContent, ModalHeader, ModalBody, Table, TableHeader, TableColumn, TableBody, Spinner, TableRow, TableCell, ModalFooter, useDisclosure, ScrollShadow, Chip, useListbox } from "@nextui-org/react";
+import { Button, Link, Listbox, ListboxItem, Avatar, Modal, ModalContent, ModalHeader, ModalBody, Table, TableHeader, TableColumn, TableBody, Spinner, TableRow, TableCell, ModalFooter, useDisclosure, ScrollShadow, Chip, Select, SelectItem } from "@nextui-org/react";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
 import { ToolsItem, ToolsSource } from "@/app/settings/page";
 import { invoke } from "@tauri-apps/api/core";
-import { AiOutlineExport, AiOutlineInfo, AiOutlineInfoCircle, AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineExport, AiOutlineInfoCircle, AiOutlinePlus } from "react-icons/ai";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SelectType } from "@/app/edittools/edit/page";
 import { message, open } from "@tauri-apps/plugin-dialog";
-import { error } from "console";
-import { Menu, MenuItem, Submenu } from "@tauri-apps/api/menu";
+import { Menu, MenuItem } from "@tauri-apps/api/menu";
 import { ask } from "@tauri-apps/plugin-dialog";
 
 
@@ -129,7 +128,7 @@ export const EditSidenav = () => {
                     >
                       <TableHeader>
                         <TableColumn allowsSorting>标题</TableColumn>
-                        <TableColumn >简介</TableColumn>
+                        <TableColumn>简介</TableColumn>
                       </TableHeader>
                       <TableBody emptyContent={"你还有添加任何工具哟"} items={toolsList.items}
                         isLoading={isToolsLoading}
@@ -140,7 +139,7 @@ export const EditSidenav = () => {
                               <TableCell>
                                 <div className="flex flex-row gap-2">
                                   <span>{item.title}</span>
-                                  <Chip startContent={<AiOutlineInfoCircle />} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id)}</Chip>
+                                  <Chip startContent={<AiOutlineInfoCircle />} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id??"")}</Chip>
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -214,7 +213,7 @@ export const EditSidenav = () => {
                   <div className="flex flex-col text-left w-full truncate gap-1">
                     <div className="flex flex-row gap-2">
                       <span className="text-small truncate">{item.title}</span>
-                      <Chip startContent={<AiOutlineInfoCircle/>} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id)}</Chip>
+                      <Chip startContent={<AiOutlineInfoCircle/>} color="primary" variant="flat" className="text-[0.5rem] h-4 mt-[2px]" size="sm">{sourceNameMap.get(item.tools_source_id??"")}</Chip>
                     </div>
 
                     <span className="text-tiny text-default-400 truncate">{item.description}</span>
