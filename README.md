@@ -33,7 +33,7 @@
 | 任务 | 状态 | 优先级 | 预览|
 | --- | --- | --- | --- |
 | 支持单个工具的删除，使用contextWindow | ✅ | 1 | ![](./statics/screenshoot-5.webp)|
-| 在线工具源的下载和导入 |  | 1 ||
+| 在线工具源的下载和导入 | ✅  | 1 |测试链接：`https://raw.githubusercontent.com/feint123/myTools/main/statics/tools-export.json`|
 | 工具源的更新|| 2||
 | 工具快捷面板窗口，全局快捷键唤起 |  | 2 ||
 | 完善设置页面 || 2 ||

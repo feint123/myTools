@@ -10,6 +10,7 @@ pub mod source;
 use std::{env, fs, sync::atomic::AtomicBool};
 
 use db::SqlState;
+use ::log::info;
 use native::{create_main_window, create_setting_window};
 use source::{ToolsSource, ToolsSourceItem};
 use tauri::{
@@ -20,11 +21,18 @@ use uuid::Uuid;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn append_source(source_type: i32, path: String, handle: AppHandle) -> Result<(), String> {
+fn append_source(source_type: i32, path: String, url:String, handle: AppHandle) -> Result<(), String> {
     let json_content = fs::read_to_string(&path).map_err(|err| err.to_string())?;
     let mut tools_source = source::parse_source(&json_content)?;
+    info!("append source: {:?}", source_type);
+    if source_type == 0 {
+        // 网络下载
+        tools_source.url = url.to_string().clone();
+    } else {
+        // 本地导入
+        tools_source.url = path.to_string().clone();
+    }
     tools_source.source_type = source_type;
-    tools_source.url = path.to_string().clone();
     tools_source.source_id = Uuid::new_v4().to_string();
     source::save_source(&tools_source, &handle)?;
     Ok(())

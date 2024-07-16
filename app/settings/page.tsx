@@ -1,5 +1,5 @@
 "use client";
-import { Button, Selection, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Snippet, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs, useDisclosure, Chip, Spinner, ScrollShadow } from "@nextui-org/react";
+import { Button, Selection, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Snippet, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs, useDisclosure, Chip, Spinner, ScrollShadow, Progress } from "@nextui-org/react";
 import { SlOptionsVertical, SlRefresh } from "react-icons/sl";
 import { AiOutlineCopy, AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import { CiCircleList, CiFileOn } from "react-icons/ci";
@@ -8,6 +8,10 @@ import { useState, useEffect, useMemo, Dispatch, SetStateAction } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import moment from "moment";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
+import { download } from "@tauri-apps/plugin-upload";
+import { appDataDir } from "@tauri-apps/api/path";
+import { emit } from "@tauri-apps/api/event";
+import { UserEvents } from "@/config/userevent";
 
 export interface ToolsSource {
   id: number | undefined;
@@ -47,7 +51,7 @@ export default function SettingsPage() {
     return () => {
       // Code here will run on component unmount.
     };
-  }, [setSourceList]);
+  }, []);
 
 
   function fetchSource(setData: Dispatch<SetStateAction<ToolsSource[]>>) {
@@ -162,6 +166,7 @@ export default function SettingsPage() {
   function AddSourceModal() {
     const [selectType, setSelectType] = useState<string | number | null | undefined>("1")
     const [filePath, setFilePath] = useState("");
+    const [sourceUrl, setSourceUrl] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     async function chooseSourceFile() {
       await open({
@@ -180,10 +185,48 @@ export default function SettingsPage() {
         }
       });
     }
-    function appendSource(onClose: () => void) {
-      setIsLoading(true);
-      invoke("append_source", { "sourceType": Number.parseInt(selectType as string), "path": filePath })
-        .then(async() => {
+    /**
+     * 加载在线源
+     * @param onClose 
+     * @param path 
+     */
+    async function downloadSource(onClose: () => void, url: string) {
+      let appDataDirPath = await appDataDir()
+      startLoading()
+      let tempPath = appDataDirPath + "/temp.json"
+      // 下载临时文件到appdata，（或者文件名使用url的md5值）
+      download(url, tempPath, () => {
+      }).then(() => {
+        appendSource(onClose, 0, tempPath, url)
+      }).catch(async (e)=>{
+        await message(`下载工具源失败【${e}】`, { title: '工具源导入', kind: 'error' });
+        finishLoading()
+      })
+    }
+    /**
+     * 加载本地源
+     * @param onClose 
+     * @param path 
+     */
+    function localSource(onClose: () => void, path: string) {
+      startLoading()
+      appendSource(onClose, 1, path, "")
+    }
+
+    function startLoading() {
+      setIsLoading(true)
+      emit(UserEvents.CHANGE_LOADING, { isLoading: true, tips: "正在导入工具源" })
+    }
+
+    function finishLoading() {
+      setIsLoading(false)
+      emit(UserEvents.CHANGE_LOADING, { isLoading: false, tips: "正在导入工具源" })
+    }
+
+    function appendSource(onClose: () => void,sourceType: number, path: string, url: string) {
+      
+      invoke("append_source", { "sourceType": sourceType, "path": path, "url": url })
+        .then(async () => {
           fetchSource(setSourceList)
           await message(`导入工具源成功`, { title: '工具源导入', kind: 'info' });
         })
@@ -191,7 +234,7 @@ export default function SettingsPage() {
           await message(`导入工具源失败【${e}】`, { title: '工具源导入', kind: 'error' });
         })
         .finally(() => {
-          setIsLoading(false)
+          finishLoading()
           onClose()
         });
     }
@@ -203,19 +246,20 @@ export default function SettingsPage() {
               <ModalHeader className="flex flex-col gap-1">添加工具源</ModalHeader>
               <ModalBody>
                 <Tabs selectedKey={selectType} onSelectionChange={setSelectType}>
-                  <Tab isDisabled key="0" title="网络">
+                  <Tab key="0" title="网络">
                     <div className="flex flex-col gap-4">
-                      <Input labelPlacement="outside" startContent={
+                      <Input startContent={
                         <div className="pointer-events-none flex items-center">
                           <span className="text-default-400 text-small">https://</span>
                         </div>
-                      } type="url" label="源地址: " placeholder="请输入你想添加的源" />
+                      } type="url" label="源地址" placeholder="请输入你想添加的源"
+                        value={sourceUrl} onValueChange={setSourceUrl} description="注意：下载过程中，请勿关闭设置窗口哦" />
                     </div>
                   </Tab>
                   <Tab key="1" title="本地">
                     <div className="flex flex-col gap-4">
                       {(filePath && filePath.length > 0) ?
-                        <Snippet classNames={{pre:"break-words line-clamp-1"}}>{filePath}</Snippet>
+                        <Snippet classNames={{ pre: "break-words line-clamp-1" }}>{filePath}</Snippet>
                         :
                         <></>
                       }
@@ -226,10 +270,19 @@ export default function SettingsPage() {
                 </Tabs>
               </ModalBody>
               <ModalFooter>
-                <Button isLoading={isLoading} color="primary" variant="flat" size="sm" onClick={() => { appendSource(onClose) }}
-                  isDisabled={!(filePath && filePath.length > 0)}>
-                  添加
-                </Button>
+                {selectType as string === "0" ? (
+                  <Button isLoading={isLoading} color="primary" variant="faded" size="sm" onClick={() => { downloadSource(onClose, sourceUrl) }}
+                    isDisabled={!(sourceUrl && sourceUrl.length > 0)}>
+                    添加
+                  </Button>
+                ) : (
+                  <Button isLoading={isLoading} color="primary" variant="faded" size="sm" onClick={() => { localSource(onClose, filePath) }}
+                    isDisabled={!(filePath && filePath.length > 0)}>
+                    添加
+                  </Button>
+                )
+                }
+
               </ModalFooter>
             </>
           )}
@@ -242,7 +295,7 @@ export default function SettingsPage() {
   function ToolSourcesSettings() {
     const [selectedSource, setSelectedSource] = useState<Selection>(new Set([]))
     function deleteSources() {
-      let selectId: string[]  = []
+      let selectId: string[] = []
       if (selectedSource == 'all') {
         selectId = sourceList.map(item => item.source_id as string)
       } else {
@@ -283,47 +336,47 @@ export default function SettingsPage() {
         <ToolsListModal />
         <ScrollShadow hideScrollBar orientation="vertical" className="h-[480px]">
 
-        <Table shadow="none" aria-label="tools source table" className="text-left w-full"
-          selectedKeys={selectedSource}
-          onSelectionChange={setSelectedSource}
-          selectionMode="multiple"
-          topContent={topContent}
+          <Table shadow="none" aria-label="tools source table" className="text-left w-full"
+            selectedKeys={selectedSource}
+            onSelectionChange={setSelectedSource}
+            selectionMode="multiple"
+            topContent={topContent}
           >
-          <TableHeader>
-            <TableColumn>名称</TableColumn>
-            <TableColumn>源地址</TableColumn>
-            <TableColumn>版本号</TableColumn>
-            <TableColumn>上次同步时间</TableColumn>
-            <TableColumn>操作</TableColumn>
-          </TableHeader>
-          <TableBody emptyContent={"没有任何的工具源"} items={sourceList}>
-            {
-              (item: ToolsSource) => {
-                return (<TableRow key={item.source_id}>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.url}</TableCell>
-                  <TableCell><Chip size="sm" radius="sm">{item.version}</Chip></TableCell>
-                  <TableCell>{formatSyncTime(item.last_sync ?? "")}</TableCell>
-                  <TableCell>  <div className="relative flex justify-end items-center gap-2">
-                    <Dropdown >
-                      <DropdownTrigger>
-                        <Button isIconOnly size="sm" variant="light">
-                          <SlOptionsVertical className="text-default-300" />
-                        </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu disabledKeys={["update"]}>
-                        <DropdownItem key="delete" startContent={<AiOutlineDelete />} onClick={()=>{deleteSourcesById([item.source_id??""])}}>删除</DropdownItem>
-                        <DropdownItem key="update" startContent={<SlRefresh />}>更新</DropdownItem>
-                        <DropdownItem key="toolsList" startContent={<CiCircleList />} onClick={() => { setCurrentSourceId(item.source_id); onToolsOpen() }}>工具列表</DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
-                  </div></TableCell>
-                </TableRow>)
+            <TableHeader>
+              <TableColumn>名称</TableColumn>
+              <TableColumn>源地址</TableColumn>
+              <TableColumn>版本号</TableColumn>
+              <TableColumn>上次同步时间</TableColumn>
+              <TableColumn>操作</TableColumn>
+            </TableHeader>
+            <TableBody emptyContent={"没有任何的工具源"} items={sourceList}>
+              {
+                (item: ToolsSource) => {
+                  return (<TableRow key={item.source_id}>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.url}</TableCell>
+                    <TableCell><Chip size="sm" radius="sm">{item.version}</Chip></TableCell>
+                    <TableCell>{formatSyncTime(item.last_sync ?? "")}</TableCell>
+                    <TableCell>  <div className="relative flex justify-end items-center gap-2">
+                      <Dropdown >
+                        <DropdownTrigger>
+                          <Button isIconOnly size="sm" variant="light">
+                            <SlOptionsVertical className="text-default-300" />
+                          </Button>
+                        </DropdownTrigger>
+                        <DropdownMenu disabledKeys={["update"]}>
+                          <DropdownItem key="delete" startContent={<AiOutlineDelete />} onClick={() => { deleteSourcesById([item.source_id ?? ""]) }}>删除</DropdownItem>
+                          <DropdownItem key="update" startContent={<SlRefresh />}>更新</DropdownItem>
+                          <DropdownItem key="toolsList" startContent={<CiCircleList />} onClick={() => { setCurrentSourceId(item.source_id); onToolsOpen() }}>工具列表</DropdownItem>
+                        </DropdownMenu>
+                      </Dropdown>
+                    </div></TableCell>
+                  </TableRow>)
+                }
               }
-            }
 
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
         </ScrollShadow>
       </div>
     )

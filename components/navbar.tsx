@@ -3,39 +3,47 @@ import {
   Navbar as NextUINavbar,
   NavbarContent,
   NavbarBrand,
-  NavbarItem} from "@nextui-org/navbar";
+  NavbarItem
+} from "@nextui-org/navbar";
 import { Button } from "@nextui-org/button";
 
 import { SlMagnifier } from "react-icons/sl";
-import { Tab, Tabs, Tooltip } from "@nextui-org/react";
+import { Spinner, Tab, Tabs, Tooltip } from "@nextui-org/react";
 import { usePathname, useRouter } from "next/navigation";
 import { invoke } from "@tauri-apps/api/core";
 import { AiOutlineAppstore, AiOutlineCloud, AiOutlineEdit, AiOutlineEye, AiOutlineInfoCircle, AiOutlineTool } from "react-icons/ai";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { emit, listen, TauriEvent } from "@tauri-apps/api/event";
+import { emit, listen, TauriEvent, Event } from "@tauri-apps/api/event";
 import { getCurrent } from "@tauri-apps/api/webviewWindow";
 import { VscChevronLeft, VscRefresh, VscSave, VscSettings } from "react-icons/vsc";
+import { ChangeLoadingPayload } from "@/types";
+import { UserEvents } from "@/config/userevent";
 
 
 
 export const Navbar = () => {
   const { theme, setTheme } = useTheme();
+  const [showLoading, setShowLoading] = useState(false);
+  const [loadingTips, setLoadingTips] = useState("");
   useEffect(() => {
-    setInterval(()=> {
+    console.log("navbar")
+    setInterval(() => {
       document.querySelector("nav header")?.setAttribute("data-tauri-drag-region", "true")
-    },1000)
+    }, 1000)
     getCurrent().theme().then(theme => {
       setTheme(theme as string)
     }).catch(e => {
       console.log(e)
     })
-    listen(TauriEvent.WINDOW_THEME_CHANGED, (event) => {
-      if (typeof event.payload === "string") {
+    listen(TauriEvent.WINDOW_THEME_CHANGED, (event: Event<string>) => {
         setTheme(event.payload)
-      }
     });
-  }, [setTheme])
+    listen(UserEvents.CHANGE_LOADING, (event: Event<ChangeLoadingPayload>) => {
+      setShowLoading(event.payload.isLoading)
+      setLoadingTips(event.payload.tips)
+    })
+  }, [])
 
   const router = useRouter();
   let pathname = usePathname();
@@ -60,8 +68,8 @@ export const Navbar = () => {
     if (pathname != "/settings") {
       return (
         <Tooltip content="设置" size="sm">
-        <Button onClick={openSettingsWindow} variant="light" size="sm" isIconOnly startContent={<VscSettings className="text-lg text-default-600"/>}>
-        </Button>
+          <Button onClick={openSettingsWindow} variant="light" size="sm" isIconOnly startContent={<VscSettings className="text-lg text-default-600" />}>
+          </Button>
         </Tooltip>
       )
     } else {
@@ -73,19 +81,31 @@ export const Navbar = () => {
     if (sourcePathname.includes("/edittools/edit")) {
       return (
         <Tooltip content="保存信息" size="sm">
-        <Button onClick={() => { emit("SAVE_TOOLS_INFO") }} variant="light" size="sm" isIconOnly 
-        startContent={<VscSave className="text-lg text-default-600"/>}>
-        </Button>
+          <Button onClick={() => { emit("SAVE_TOOLS_INFO") }} variant="light" size="sm" isIconOnly
+            startContent={<VscSave className="text-lg text-default-600" />}>
+          </Button>
         </Tooltip>
-        )
+      )
     } else {
-      return  <></>
+      return <></>
     }
   }
   function NavTitle() {
     if (pathname == "/settings") {
       return (
         <span className="font-bold">设置</span>
+      )
+    } else {
+      return <></>
+    }
+  }
+
+  function LoadingTips() {
+    if (showLoading) {
+      return (
+        <Tooltip content={loadingTips}>
+          <Spinner size="sm" />
+        </Tooltip>
       )
     } else {
       return <></>
@@ -123,6 +143,7 @@ export const Navbar = () => {
         </NavbarContent>
         <NavbarContent data-tauri-drag-region justify="end">
           <NavbarItem>
+            <LoadingTips />
           </NavbarItem>
         </NavbarContent>
       </NavWarpper>)
@@ -167,12 +188,12 @@ export const Navbar = () => {
         </NavbarContent>
         <NavbarContent data-tauri-drag-region justify="end" className="gap-2">
           <NavbarItem>
-            <SaveButton/>
+            <SaveButton />
           </NavbarItem>
           <NavbarItem>
             <Tooltip content="刷新页面" size="sm">
-            <Button onClick={() => { location.reload() }} variant="light" size="sm" isIconOnly startContent={<VscRefresh className="text-lg text-default-600"/>}>
-            </Button>
+              <Button onClick={() => { location.reload() }} variant="light" size="sm" isIconOnly startContent={<VscRefresh className="text-lg text-default-600" />}>
+              </Button>
             </Tooltip>
           </NavbarItem>
           <NavbarItem>
