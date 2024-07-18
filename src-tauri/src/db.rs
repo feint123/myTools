@@ -67,6 +67,8 @@ pub fn init_db_conn(handle: &AppHandle) -> Result<(), String> {
     db_manager.connection = Connection::open(&index_path)
         .map_err(|err| err.to_string())
         .unwrap();
+    // 初始化db
+    db_manager.init(handle);
     Ok(())
 }
 
@@ -113,8 +115,7 @@ impl DbManager {
         Ok(())
     }
 
-    pub fn add_source(self: &Self, ts: &ToolsSource, handler: &AppHandle) -> Result<(), String> {
-        self.init(&handler)?;
+    pub fn add_source(self: &Self, ts: &ToolsSource) -> Result<(), String> {
         self.connection.execute(
             "INSERT OR REPLACE INTO tools_source (source_id, name, description, version, author, url, source_type, last_sync) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             (&ts.source_id, &ts.name, &ts.description, &ts.version, &ts.author, &ts.url, &ts.source_type,
@@ -129,7 +130,6 @@ impl DbManager {
         item: &ToolsSourceItem,
         handle: &AppHandle,
     ) -> Result<(), String> {
-        self.init(&handle)?;
         self.connection.execute(
             "INSERT OR REPLACE INTO tools_source_item (title, description, cover_image_url, preview_image_url, target_url, content, author, tool_type, categorys, tools_source_id, source_name) VALUES (?1, ?2,?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             (&item.title, &item.description, &item.cover_image_url, &item.preview_image_url.join("&"), 
@@ -143,7 +143,6 @@ impl DbManager {
         source_ids: &Vec<String>,
         handler: &AppHandle,
     ) -> Result<(), String> {
-        self.init(&handler)?;
         let mut prepare = self
             .connection
             .prepare("DELETE FROM tools_source WHERE source_id IN (?1)")
@@ -154,8 +153,7 @@ impl DbManager {
         Ok(())
     }
 
-    pub fn delete_item(self: &Self, source_id: &String, handler: &AppHandle) -> Result<(), String> {
-        self.init(&handler)?;
+    pub fn delete_item(self: &Self, source_id: &String) -> Result<(), String> {
         let mut prepare = self
             .connection
             .prepare("DELETE FROM tools_source_item WHERE tools_source_id = ?1")
@@ -196,7 +194,6 @@ impl DbManager {
         item_id: i32,
         handler: &AppHandle,
     ) -> Result<Vec<ToolsSourceItem>, String> {
-        self.init(&handler)?;
         let mut prepare = self
             .connection
             .prepare("SELECT * FROM tools_source_item WHERE id = ?1")
@@ -224,7 +221,6 @@ impl DbManager {
         item_id: i32,
         handler: &AppHandle,
     ) -> Result<(), String> {
-        self.init(&handler)?;
         let mut prepare = self
             .connection
             .prepare("DELETE FROM tools_source_item WHERE id = ?1")
@@ -271,7 +267,6 @@ impl DbManager {
         tool_type: String,
         handler: &AppHandle,
     ) -> Result<Vec<ToolsSourceItem>, String> {
-        self.init(&handler)?;
         let mut prepare = self
             .connection
             .prepare("SELECT * FROM tools_source_item Where tool_type = ?")
@@ -300,7 +295,6 @@ impl DbManager {
         handler: &AppHandle,
     ) -> Result<Vec<ToolsSourceItem>, String> {
         info!("query id is {id}");
-        self.init(&handler)?;
         let mut sql_template = "SELECT * FROM tools_source_item Where tools_source_id = ?";
         if id.len() == 0 {
             sql_template = "SELECT * FROM tools_source_item ORDER BY id DESC";
@@ -350,7 +344,6 @@ impl DbManager {
     }
 
     pub fn get_all_source(self: &Self, handle: &AppHandle) -> Result<Vec<ToolsSource>, String> {
-        self.init(&handle)?;
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM tools_source")
@@ -378,7 +371,6 @@ impl DbManager {
         url: String,
         handle: &AppHandle,
     ) -> Result<Vec<ToolsSource>, String> {
-        self.init(&handle)?;
         let mut stmt = self
             .connection
             .prepare("SELECT * FROM tools_source where url = ?")
@@ -399,5 +391,30 @@ impl DbManager {
         }
 
         Ok(sources)
+    }
+
+    pub fn get_source_by_id(
+        self: &Self,
+        source_id: String
+    ) -> Result<Option<ToolsSource>, String> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT * FROM tools_source where source_id = ?")
+            .map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map((&source_id,), Self::deal_tools_row)
+            .map_err(|err| err.to_string())?;
+
+        for source in rows {
+            if source.is_ok() {
+                let source = source.unwrap();
+                return Ok(Some(source))
+            } else {
+                let err = source.unwrap_err();
+                info!("source error {err}")
+            }
+        }
+
+        Ok(None)
     }
 }

@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write};
+use std::{fs::{self, File}, io::Write, path::PathBuf};
 
 use log::{info, kv::source};
 use serde::{Deserialize, Serialize};
@@ -7,8 +7,7 @@ use tauri::AppHandle;
 use uuid::Uuid;
 
 use crate::{
-    db::DB,
-    search::{self, TOOLS_INDEX},
+    db::DB, request::download_file, search::{self, TOOLS_INDEX}
 };
 
 /**
@@ -86,7 +85,7 @@ pub fn parse_source(source: &str) -> Result<ToolsSource, String> {
 pub fn save_source(tools_source: &ToolsSource, handle: &AppHandle) -> Result<(), String> {
     let db = DB.lock().map_err(|err| err.to_string())?;
     // 添加源
-    db.add_source(&tools_source, &handle)?;
+    db.add_source(&tools_source)?;
     let source_item_len = tools_source.items.len();
     info!("save source: {source_item_len} ");
     // 添加工具列表
@@ -104,7 +103,7 @@ pub fn delete_source(source_ids: Vec<String>, handle: &AppHandle) -> Result<(), 
     db.delete_source(&source_ids, &handle)?;
     let tools_index = TOOLS_INDEX.lock().map_err(|err| err.to_string())?;
     for source_id in source_ids {
-        db.delete_item(&source_id, &handle)?;
+        db.delete_item(&source_id)?;
         tools_index.delete_by_source_id(&source_id)?;
     }
     Ok(())
@@ -151,8 +150,7 @@ pub fn save_local_tool_item(item: &ToolsSourceItem, handle: &AppHandle) -> Resul
                 source_type: 1,
                 last_sync: "".to_string(),
                 items: vec![],
-            },
-            handle,
+            }
         )?;
         source = db.get_source_by_url("localhost".to_string(), handle)?;
     }
@@ -219,3 +217,52 @@ pub(crate) fn delete_source_item_by_id(item_id: i32, handle: &AppHandle) -> Resu
     db.delete_source_item_by_id(item_id, handle)?;
     Ok(())
 }
+
+pub fn update_source_by_id(source_id: String, handle: &AppHandle) -> Result<(), String> {
+    // 获取source_id 对应的source对象
+    let db = DB.lock().map_err(|err| err.to_string())?;
+    let source = db.get_source_by_id(source_id.clone())?;
+    if let Some(source) = source {
+        let path :String;
+        if source.source_type == SOURCE_TYPE_WEB {
+            path = download_file(source.url, handle)?;
+        } else {
+            path = source.url;
+        }
+        let source_path = PathBuf::from(&path);
+        if !source_path.exists() {
+            return Err("配置文件不存在！".to_string());
+        }
+        let json_content = fs::read_to_string(&path).map_err(|err| err.to_string())?;
+        let mut tools_source = parse_source(&json_content)?;
+        // 大于当前版本则，才进行更新
+        if tools_source.version > source.version {
+            tools_source.source_type = source.source_type;
+            tools_source.source_id = source.source_id;
+            tools_source.url = path.clone();
+            // 更新source数据
+            db.add_source(&tools_source)?;
+            // 删除旧数据
+            db.delete_item(&source_id)?;
+            // 插入新数据
+            tools_source.items.iter().for_each(|item| {
+                db.add_source_item(&tools_source, item, handle).unwrap();
+            });
+            // 更新索引数据
+            let tools = db.get_source_items(tools_source.source_id, handle)?;
+            let tools_index = TOOLS_INDEX.lock().map_err(|err| err.to_string())?;
+            tools_index.update_index(&tools)?;
+        } else {
+            return Err("已是最新版本！".to_string());
+        }
+        if source.source_type == SOURCE_TYPE_WEB {
+            // 删除临时文件
+            fs::remove_file(&path).map_err(|err| err.to_string())?;
+        }
+    }
+
+    Ok(())
+}
+
+const SOURCE_TYPE_WEB: i32 = 0;
+const SOURCE_TYPE_LOCAL: i32 = 1;

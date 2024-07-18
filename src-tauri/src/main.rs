@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 pub mod db;
-pub mod log;
+pub mod request;
 pub mod native;
 pub mod search;
 pub mod source;
@@ -14,7 +14,6 @@ use ::log::info;
 use native::{create_main_window, create_setting_window};
 use source::{ToolsSource, ToolsSourceItem};
 use tauri::{
-    menu::{ContextMenu, Menu},
     App, AppHandle, Manager,
 };
 use uuid::Uuid;
@@ -35,6 +34,12 @@ fn append_source(source_type: i32, path: String, url:String, handle: AppHandle) 
     tools_source.source_type = source_type;
     tools_source.source_id = Uuid::new_v4().to_string();
     source::save_source(&tools_source, &handle)?;
+    Ok(())
+}
+
+#[tauri::command]
+fn update_source(source_id: String, handle: AppHandle) -> Result<(), String> {
+    source::update_source_by_id(source_id, &handle)?;
     Ok(())
 }
 
@@ -147,7 +152,8 @@ fn main() {
             save_local_source_item,
             search_tools,
             export_source,
-            delete_source_item_by_id
+            delete_source_item_by_id,
+            update_source
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

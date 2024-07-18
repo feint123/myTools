@@ -34,7 +34,7 @@
 | --- | --- | --- | --- |
 | 支持单个工具的删除，使用contextWindow | ✅ | 1 | ![](./statics/screenshoot-5.webp)|
 | 在线工具源的下载和导入 | ✅  | 1 |测试链接：`https://raw.githubusercontent.com/feint123/myTools/main/statics/tools-export.json`|
-| 工具源的更新|| 2||
+| 工具源的更新|✅| 2||
 | 工具快捷面板窗口，全局快捷键唤起 |  | 2 ||
 | 完善设置页面 || 2 ||
 | 页面加载动画使用骨架屏||3||
@@ -43,4 +43,9 @@
 | 多语言支持|| 4||
 | windows,Linux兼容性测试|| 4||
 
+### 设计文档
+
+参考文件[myTools设计文档.drawio](./statics/myTools设计文档.drawio)(完善中)。请使用`Draw.io`查看。
+
 ### Bug记录
+1. 编辑页面删除工具后，页面某些情况列表数据不会更新

@@ -4,7 +4,7 @@ import { SlOptionsVertical, SlRefresh } from "react-icons/sl";
 import { AiOutlineCopy, AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 import { CiCircleList, CiFileOn } from "react-icons/ci";
 import { message, open } from "@tauri-apps/plugin-dialog";
-import { useState, useEffect, useMemo, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useMemo, Dispatch, SetStateAction, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import moment from "moment";
 import { AsyncListData, AsyncListLoadOptions, useAsyncList } from "@react-stately/data";
@@ -12,6 +12,7 @@ import { download } from "@tauri-apps/plugin-upload";
 import { appDataDir } from "@tauri-apps/api/path";
 import { emit } from "@tauri-apps/api/event";
 import { UserEvents } from "@/config/userevent";
+import { VscAdd, VscRefresh, VscRemove } from "react-icons/vsc";
 
 export interface ToolsSource {
   id: number | undefined;
@@ -198,7 +199,7 @@ export default function SettingsPage() {
       download(url, tempPath, () => {
       }).then(() => {
         appendSource(onClose, 0, tempPath, url)
-      }).catch(async (e)=>{
+      }).catch(async (e) => {
         await message(`下载工具源失败【${e}】`, { title: '工具源导入', kind: 'error' });
         finishLoading()
       })
@@ -223,8 +224,8 @@ export default function SettingsPage() {
       emit(UserEvents.CHANGE_LOADING, { isLoading: false, tips: "正在导入工具源" })
     }
 
-    function appendSource(onClose: () => void,sourceType: number, path: string, url: string) {
-      
+    function appendSource(onClose: () => void, sourceType: number, path: string, url: string) {
+
       invoke("append_source", { "sourceType": sourceType, "path": path, "url": url })
         .then(async () => {
           fetchSource(setSourceList)
@@ -294,7 +295,7 @@ export default function SettingsPage() {
 
   function ToolSourcesSettings() {
     const [selectedSource, setSelectedSource] = useState<Selection>(new Set([]))
-    function deleteSources() {
+    const deleteSources = useCallback(() => {
       let selectId: string[] = []
       if (selectedSource == 'all') {
         selectId = sourceList.map(item => item.source_id as string)
@@ -302,8 +303,37 @@ export default function SettingsPage() {
         selectId = Array.from(selectedSource).map(item => item.toString())
       }
       deleteSourcesById(selectId)
+    }, [selectedSource, sourceList])
+    const [selectId, setSelectId] = useState<string[]>([])
+    const updateSource = useCallback(async () => {
+      let selectId: string[] = []
+      if (selectedSource == 'all') {
+        selectId = sourceList.map(item => item.source_id as string)
+      } else {
+        selectId = Array.from(selectedSource).map(item => item.toString())
+      }
+      for (let i = 0; i < selectId.length; i++) {
+        await updateSourceById(selectId[i], sourceList.filter(item => item.source_id == selectId[i])[0].name??"")
+      }
+      fetchSource(setSourceList)
+      await message(`更新完成`, { title: '工具源更新', kind: 'info' });
+    }, [selectedSource, sourceList])
+
+    async function updateSourceById(sourceId: string, sourceName: string) {
+      try {
+        await invoke("update_source", { "sourceId": sourceId })
+      } catch (e) {
+        await message(`更新"${sourceName}"失败【${e}】`, { title: '工具源更新', kind: 'error' });
+      }
     }
 
+    function getSelectLength() {
+      if (selectedSource == 'all') {
+        return sourceList.length
+      } else {
+         return Array.from(selectedSource).length
+      }
+    }
     function deleteSourcesById(sourceId: string[]) {
       invoke("delete_source", { "sourceIds": sourceId })
         .then(() => {
@@ -317,15 +347,15 @@ export default function SettingsPage() {
     const topContent = useMemo(() => {
       return (
         <div className="flex flex-row gap-2 justify-end">
-          <Button size="sm" variant="flat" startContent={<SlRefresh />} isDisabled>更新</Button>
-          <Button size="sm" color="danger" variant="flat" startContent={<AiOutlineDelete />} onClick={deleteSources}>删除</Button>
+          <Button isDisabled={getSelectLength() > 0 ? false:true} size="sm" variant="flat" startContent={<VscRefresh />} onClick={updateSource}>更新</Button>
+          <Button isDisabled={getSelectLength() > 0 ? false:true} size="sm" color="danger" variant="flat" startContent={<AiOutlineDelete />} onClick={deleteSources}>删除</Button>
 
-          <Button color="primary" size="sm" variant="flat" startContent={<AiOutlinePlus />} onPress={onOpen}>
+          <Button color="primary" size="sm" variant="flat" startContent={<VscAdd />} onClick={onOpen}>
             新增
           </Button>
         </div>
       )
-    }, [deleteSources, onOpen])
+    }, [deleteSources, updateSource, onOpen])
 
     function formatSyncTime(timestamp: string) {
       return moment.unix(Number.parseInt(timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss'); // "2023-09-05 12:34:56"
