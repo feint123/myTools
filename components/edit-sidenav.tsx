@@ -30,7 +30,14 @@ export const EditSidenav = () => {
               invoke("delete_source_item_by_id", { itemId: toolId })
                 .then(async () => {
                   await message("删除成功", { title: "删除", kind: "info" });
-                  router.push(`/edittools/edit`)
+                  invoke("get_source_item", { id: "" }).then(items=>{
+                    console.log("after delete ",items)
+                    if (items instanceof Array && items.length > 0) {
+                      router.replace(`/edittools?toolId=${items[0].id}&timestamp=${new Date().getTime()}`)
+                    } else {
+                      router.replace(`/edittools/edit`)
+                    }
+                  })
                 })
                 .catch(err => {
                   message(`删除工具失败【${err}】`, { title: "删除", kind: "error" });
@@ -176,6 +183,7 @@ export const EditSidenav = () => {
 
   const params = useSearchParams();
   const toolId = params.get("toolId")
+  const timestamp = params.get("timestamp")
   const [selectedToolId, setSelectedToolId] = useState<SelectType>()
   useEffect(() => {
     if (toolId) {
@@ -193,7 +201,7 @@ export const EditSidenav = () => {
         setSourceNameMap(new Map(items.map(item=>[item.source_id, item.name])))
       }
     })
-  }, [setSelectedToolId, toolId, useAsyncList, setTools, setSources, setSourceNameMap])
+  }, [toolId, timestamp])
 
   return (
     <div>
