@@ -28,7 +28,6 @@
     "shell:default",
     "fs:allow-appdata-write",
     "fs:allow-create",
-    "updater:default",
     "upload:default"
   ]
 }

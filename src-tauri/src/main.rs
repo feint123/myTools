@@ -128,7 +128,7 @@ fn show_settings(handle: AppHandle) -> Result<(), String> {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_upload::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+        // .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_log::Builder::new().build())
         .manage(SqlState(AtomicBool::new(false)))
         // .plugin(tauri_plugin_store::Builder::new().build())

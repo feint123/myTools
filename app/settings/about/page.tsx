@@ -29,7 +29,7 @@ export default function AboutPage() {
       <Avatar isBordered className="w-20 h-20 text-large mb-2" src={"/logo@0.5x.png"} />
       <p className="text-foreground-500">myTools</p>
 
-      <p className="text-foreground-500 text-sm">v 0.0.1 alpha</p>
+      <p className="text-foreground-500 text-sm">v 0.0.2 alpha</p>
     </div>
 
     <p className="text-foreground-500">
